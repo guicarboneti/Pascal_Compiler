@@ -124,7 +124,6 @@ extern int yydebug;
     TYPE = 271,
     ABRE_CHAVES = 272,
     FECHA_CHAVES = 273,
-    FECHA_CHAVES = 274,
     ABRE_COLCHETES = 275,
     FECHA_COLCHETES = 276,
     ARRAY = 277,
@@ -134,15 +133,16 @@ extern int yydebug;
     GOTO = 281,
     IF = 282,
     THEN = 283,
-    WHILE = 284,
-    DO = 285,
-    OR = 286,
-    AND = 287,
-    DIV = 288,
-    MAIS = 289,
-    MENOS = 290,
-    VEZES = 291,
-    NOT = 292
+    ELSE = 284
+    WHILE = 285,
+    DO = 286,
+    OR = 287,
+    AND = 288,
+    DIV = 289,
+    MAIS = 290,
+    MENOS = 291,
+    VEZES = 292,
+    NOT = 293
   };
 #endif
 
