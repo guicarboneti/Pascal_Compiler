@@ -133,7 +133,7 @@ extern int yydebug;
     GOTO = 281,
     IF = 282,
     THEN = 283,
-    ELSE = 284
+    ELSE = 284,
     WHILE = 285,
     DO = 286,
     OR = 287,
