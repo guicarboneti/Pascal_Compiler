@@ -119,7 +119,30 @@ extern int yydebug;
     T_END = 266,
     VAR = 267,
     IDENT = 268,
-    ATRIBUICAO = 269
+    ATRIBUICAO = 269,
+    LABEL = 270,
+    TYPE = 271,
+    ABRE_CHAVES = 272,
+    FECHA_CHAVES = 273,
+    FECHA_CHAVES = 274,
+    ABRE_COLCHETES = 275,
+    FECHA_COLCHETES = 276,
+    ARRAY = 277,
+    OF = 278,
+    PROCEDURE = 279,
+    FUNCTION = 280,
+    GOTO = 281,
+    IF = 282,
+    THEN = 283,
+    WHILE = 284,
+    DO = 285,
+    OR = 286,
+    AND = 287,
+    DIV = 288,
+    MAIS = 289,
+    MENOS = 290,
+    VEZES = 291,
+    NOT = 292
   };
 #endif
 
