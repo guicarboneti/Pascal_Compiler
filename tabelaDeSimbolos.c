@@ -23,17 +23,21 @@ void insere(PILHA *TS, char *id, CATEGORIAS categoria, void *atributos, int nive
     empilha(TS, simbolo);
 }
 
-// // devolve o índice na TS correspondente à última ocorrência de id
-// void busca(PILHA *TS, char *id) {
+// devolve o índice na TS correspondente à última ocorrência de id
+void busca(PILHA *TS, char *id) {
+    if (pilhaVazia(TS)) return -1;
 
-// }
+    SIMBOLO *item;
 
-// // retira do topo da pilha as n últimas entradas 
-// void elimina(PILHA *TS, int n) {
+    for (int i = TS->tamanho; i >= 0; i--) {
+        item = buscaItem(TS, i);
+        if (!strcmp(item->id, id))            
+            return i;
+    }
+}
 
-// }
-
-// // Elimina entradas com o nível lexico
-// void eliminaNivelLex(PILHA *TS, int nivel) {
-
-// }
+// retira do topo da pilha as n últimas entradas 
+void elimina(PILHA *TS, int n) {
+    TS->tamanho -= n;
+    return;
+}

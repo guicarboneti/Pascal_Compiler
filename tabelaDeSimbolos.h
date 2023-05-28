@@ -58,9 +58,6 @@ void busca(PILHA *TS, char *id);
 // retira do topo da pilha as n últimas entradas 
 void elimina(PILHA *TS, int n);
 
-// Elimina entradas com o nível lexico
-void eliminaNivelLex(PILHA *TS, int nivel);
-
 /* a completar aqui */
 
 #endif

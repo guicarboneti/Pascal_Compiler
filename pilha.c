@@ -35,7 +35,7 @@ void* topo(PILHA* pilha) {
     return pilha->itens[pilha->tamanho - 1];
 }
 
-int checaVazia(PILHA* pilha) {
+int pilhaVazia(PILHA* pilha) {
     return pilha->tamanho == 0;
 }
 
@@ -46,4 +46,8 @@ void limpa(PILHA* pilha) {
 void destroiPilha(PILHA* pilha) {
     free(pilha->itens);
     free(pilha);
+}
+
+void *buscaItem(PILHA *pilha, int pos) {
+    return (void *) (pilha->itens + (pilha->tam_dado * pos));
 }

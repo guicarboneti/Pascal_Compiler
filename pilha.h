@@ -13,9 +13,10 @@ typedef struct PILHA {
 PILHA* criaPilha(int capacidade, size_t tam_tipoDeDado);
 void empilha(PILHA* pilha, void* item);
 void* desempilha(PILHA* pilha);
-void* topo(PILHA* pilha);
-int checaVazia(PILHA* pilha);
+void* topo(PILHA* pilha);                   // devolve elemento do topo
+int pilhaVazia(PILHA* pilha);
 void limpa(PILHA* pilha);
 void destroiPilha(PILHA* pilha);
+void *buscaItem(PILHA *pilha, int pos);     // Devolve o elemento na posição pos
 
 #endif
