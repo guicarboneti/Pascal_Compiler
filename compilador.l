@@ -230,20 +230,56 @@ div { simbolo  = simb_div;
 
 \+  { simbolo = simb_soma;  
           strncpy (token, yytext, TAM_TOKEN);
-          IMPRIME(" mais ");
-          return MAIS;
+          IMPRIME(" soma ");
+          return SOMA;
  }
 
-\- { simbolo  = simb_menos;  
+\- { simbolo  = simb_subt;  
           strncpy (token, yytext, TAM_TOKEN);
-          IMPRIME(" menos ");
-          return MENOS;
+          IMPRIME(" subtracao ");
+          return SUBTRACAO;
  }
 
-\* { simbolo  = simb_vezes;  
+\* { simbolo  = simb_mult;  
           strncpy (token, yytext, TAM_TOKEN);
-          IMPRIME(" vezes ");
-          return VEZES;
+          IMPRIME(" multiplicacao ");
+          return MULTIPLICACAO;
+ }
+
+\= { simbolo  = simb_igual;  
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" igual ");
+          return IGUAL;
+ }
+
+\<> { simbolo  = simb_diferente;  
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" diferente ");
+          return DIFERENTE;
+ }
+
+\< { simbolo  = simb_menor;  
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" menor ");
+          return MENOR;
+ }
+
+\> { simbolo  = simb_maior;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" maior ");
+          return MAIOR;
+ }
+
+\<= { simbolo  = simb_menor_igual;  
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" menor_igual ");
+          return MENOR_IGUAL;
+ }
+
+\>= { simbolo  = simb_maior_igual;  
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" maior_igual ");
+          return MAIOR_IGUAL;
  }
 
 not { simbolo  = simb_not;  
@@ -256,6 +292,12 @@ not { simbolo  = simb_not;
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME(" ident  ");
           return IDENT;
+        }
+
+{numero} { simbolo = simb_numero;
+          strncpy (token, yytext, TAM_TOKEN);
+          IMPRIME(" numero  ");
+          return NUMERO;
         }
 
 
