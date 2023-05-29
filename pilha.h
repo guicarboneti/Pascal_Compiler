@@ -18,5 +18,6 @@ int pilhaVazia(PILHA* pilha);
 void limpa(PILHA* pilha);
 void destroiPilha(PILHA* pilha);
 void *buscaItem(PILHA *pilha, int pos);     // Devolve o elemento na posição pos
+void imprimePilha(PILHA* pilha, void (*imprimirElemento)(void*));
 
 #endif

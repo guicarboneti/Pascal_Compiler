@@ -6,7 +6,7 @@
 #include "tabelaDeSimbolos.h"
 
 void inicializaTS(PILHA *TS, int tam) {
-    TS = criaPilha(tam, sizeof(SIMBOLO));
+    *TS = *criaPilha(tam, sizeof(SIMBOLO));
 }
 
 // insere simbolo no topo da pilha
@@ -14,7 +14,6 @@ void insere(PILHA *TS, char *id, CATEGORIAS categoria, void *atributos, int nive
     SIMBOLO *simbolo = malloc(sizeof(SIMBOLO));
     char *ident = malloc(sizeof(char) * strlen(id));    // ?
     strncpy(ident, id, strlen(id));
-
     simbolo->id = ident;
     simbolo->categoria = categoria;
     simbolo->atributos = atributos;
@@ -24,7 +23,7 @@ void insere(PILHA *TS, char *id, CATEGORIAS categoria, void *atributos, int nive
 }
 
 // devolve o índice na TS correspondente à última ocorrência de id
-void busca(PILHA *TS, char *id) {
+int busca(PILHA *TS, char *id) {
     if (pilhaVazia(TS)) return -1;
 
     SIMBOLO *item;
@@ -40,4 +39,56 @@ void busca(PILHA *TS, char *id) {
 void elimina(PILHA *TS, int n) {
     TS->tamanho -= n;
     return;
+}
+
+void printVarSimples(VAR_SIMPLES *atributos) {
+    // printf(" / Desloc: %d / Tipo: %s", atributos->deslocamento, tipoToString(atributos->tipo));
+}
+
+void printParamFormal(PARAM_FORMAL *atributos) {
+    return;
+}
+
+void printProcedimento(PROCEDIMENTO *atributos) {
+    return;
+}
+
+void printFuncao(FUNCAO *atributos) {
+    return;
+}
+
+
+void imprimeSimbolo(void* item) {
+    SIMBOLO *simb = item;
+    printf("%s: %d %d \n", simb->id, simb->categoria, simb->nivel_lex);
+
+    switch (simb->categoria) {
+        case var_simples:
+            printVarSimples(simb->atributos);
+            break;
+        case param_formal:
+            printParamFormal(simb->atributos);
+            break;
+        case procedimento:
+            printProcedimento(simb->atributos);
+            break;
+        case funcao:
+            printFuncao(simb->atributos);
+            break;
+        default:
+            break;
+    }
+}
+
+void imprimeTS(PILHA *TS, int tam) {
+    imprimePilha(TS, imprimeSimbolo);
+}
+
+VAR_SIMPLES *criaVarSimples(TIPOS tipo, int deslocamento) {
+    VAR_SIMPLES *atributos = malloc(sizeof(VAR_SIMPLES));
+
+    atributos->tipo = tipo;
+    atributos->deslocamento = deslocamento;
+
+    return atributos;
 }

@@ -9,8 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "compilador.h"
+#include "pilha.h"
+#include "tabelaDeSimbolos.h"
 
 int num_vars;
+PILHA TS;
+SIMBOLO *simb;
+char comando[30];
 
 %}
 
@@ -26,19 +31,24 @@ int num_vars;
 
 %%
 
+
+/* REGRA 1 */
 programa    :{
-             geraCodigo (NULL, "INPP");
+               geraCodigo (NULL, "INPP");
              }
              PROGRAM IDENT
              ABRE_PARENTESES lista_idents FECHA_PARENTESES PONTO_E_VIRGULA
              bloco PONTO {
-             geraCodigo (NULL, "PARA");
+               geraCodigo (NULL, "PARA");
              }
 ;
 
+
+/* REGRA 2 */
 bloco       :
               parte_declara_vars
               {
+                  
               }
 
               comando_composto
@@ -46,7 +56,7 @@ bloco       :
 
 
 
-
+/* REGRA 8 */
 parte_declara_vars:  var
 ;
 
@@ -62,7 +72,9 @@ declara_vars: declara_vars declara_var
 declara_var : { }
               lista_id_var DOIS_PONTOS
               tipo
-              { /* AMEM */
+              { 
+                  strcpy(comando, "AMEM");
+                  geraCodigo(NULL, comando);
               }
               PONTO_E_VIRGULA
 ;
@@ -110,6 +122,10 @@ int main (int argc, char** argv) {
 
    yyin=fp;
    yyparse();
+   inicializaTS(&TS, 2);
+   insere(&TS, "5", var_simples, criaVarSimples(var_simples, 0), 0);
+   insere(&TS, "10", var_simples, criaVarSimples(var_simples, 0), 0);
+   imprimeTS(&TS, 1);
 
    return 0;
 }

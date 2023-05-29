@@ -8,6 +8,7 @@ PILHA* criaPilha(int capacidade, size_t tam_tipoDeDado) {
     pilha->capacidade = capacidade;
     pilha->tamanho = 0;
     pilha->tam_dado = tam_tipoDeDado;
+
     return pilha;
 }
 
@@ -50,4 +51,13 @@ void destroiPilha(PILHA* pilha) {
 
 void *buscaItem(PILHA *pilha, int pos) {
     return (void *) (pilha->itens + (pilha->tam_dado * pos));
+}
+
+void imprimePilha(PILHA* pilha, void (*imprimeElemento)(void*)) {
+    printf("Pilha:\n");
+    for (int i = pilha->tamanho - 1; i >= 0; i--) {
+        imprimeElemento(pilha->itens[i]);
+        printf(" ");
+    }
+    printf("\n");
 }

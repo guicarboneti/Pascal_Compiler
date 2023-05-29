@@ -53,10 +53,22 @@ void inicializaTS(PILHA *TS, int tam);
 void insere(PILHA *TS, char *id, CATEGORIAS categoria, void *atributos, int nivel_lex);
 
 // devolve o índice na TS correspondente à última ocorrência de id
-void busca(PILHA *TS, char *id);
+int busca(PILHA *TS, char *id);
 
 // retira do topo da pilha as n últimas entradas 
 void elimina(PILHA *TS, int n);
+
+void imprimeTS(PILHA *TS, int tam);
+
+VAR_SIMPLES *criaVarSimples(TIPOS tipo, int deslocamento);
+
+void printVarSimples(VAR_SIMPLES *atributos);
+
+void printParamFormal(PARAM_FORMAL *atributos);
+
+void printProcedimento(PROCEDIMENTO *atributos);
+
+void printFuncao(FUNCAO *atributos);
 
 /* a completar aqui */
 
