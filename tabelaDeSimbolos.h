@@ -3,6 +3,8 @@
 
 #include "pilha.h"
 
+#define TS_TAM 100
+
 typedef enum CATEGORIAS {
     var_simples, param_formal, procedimento, funcao
 } CATEGORIAS;

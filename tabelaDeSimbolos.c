@@ -60,7 +60,7 @@ void printFuncao(FUNCAO *atributos) {
 
 void imprimeSimbolo(void* item) {
     SIMBOLO *simb = item;
-    printf("%s: %d %d \n", simb->id, simb->categoria, simb->nivel_lex);
+    printf(" %s        %d            %d\n", simb->id, simb->categoria, simb->nivel_lex);
 
     switch (simb->categoria) {
         case var_simples:
@@ -81,6 +81,8 @@ void imprimeSimbolo(void* item) {
 }
 
 void imprimeTS(PILHA *TS, int tam) {
+    printf("\nPilha:\n");
+    printf("id | categoria | nivel_lex\n");
     imprimePilha(TS, imprimeSimbolo);
 }
 

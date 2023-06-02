@@ -54,10 +54,7 @@ void *buscaItem(PILHA *pilha, int pos) {
 }
 
 void imprimePilha(PILHA* pilha, void (*imprimeElemento)(void*)) {
-    printf("Pilha:\n");
-    for (int i = pilha->tamanho - 1; i >= 0; i--) {
+    for (int i = pilha->tamanho - 1; i >= 0; i--)
         imprimeElemento(pilha->itens[i]);
-        printf(" ");
-    }
     printf("\n");
 }

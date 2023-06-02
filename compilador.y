@@ -16,6 +16,8 @@ int num_vars;
 PILHA TS;
 SIMBOLO *simb;
 char comando[30];
+int nivel_lexico;
+int desloc;
 
 %}
 
@@ -34,6 +36,7 @@ char comando[30];
 
 /* REGRA 1 */
 programa    :{
+               nivel_lexico = 0;
                geraCodigo (NULL, "INPP");
              }
              PROGRAM IDENT
@@ -48,7 +51,7 @@ programa    :{
 bloco       :
               parte_declara_vars
               {
-                  
+                  // empilha vars na TS
               }
 
               comando_composto
@@ -61,7 +64,7 @@ parte_declara_vars:  var
 ;
 
 
-var         : { } VAR declara_vars
+var         : { desloc = 0; } VAR declara_vars
             |
 ;
 
@@ -69,12 +72,25 @@ declara_vars: declara_vars declara_var
             | declara_var
 ;
 
-declara_var : { }
+declara_var : { num_vars = 0; }
               lista_id_var DOIS_PONTOS
               tipo
               { 
-                  strcpy(comando, "AMEM");
+                  // Aloca memória pras variáveis
+                  sprintf(comando, "AMEM %d", num_vars);
                   geraCodigo(NULL, comando);
+
+                  // // atualiza tipo das variáveis
+                  // switch (simbolo) {
+                  //    case simb_integer:
+                  //       atualizaTipo(inteiro, num_vars);
+                  //       break;
+                  //    case simb_boolean:
+                  //       atualizaTipo(booleano, num_vars);
+                  //       break;
+                  //    default:
+                  //       break;
+                  // }
               }
               PONTO_E_VIRGULA
 ;
@@ -83,8 +99,18 @@ tipo        : IDENT
 ;
 
 lista_id_var: lista_id_var VIRGULA IDENT
-              { /* insere �ltima vars na tabela de s�mbolos */ }
-            | IDENT { /* insere vars na tabela de s�mbolos */}
+              {
+                  /* insere ultima vars na tabela de simbolos */ 
+                  insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
+                  num_vars++;
+                  desloc++;
+              }
+            | IDENT {
+                  /* insere vars na tabela de s�mbolos */
+                  insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
+                  num_vars++;
+                  desloc++;
+               }
 ;
 
 lista_idents: lista_idents VIRGULA IDENT
@@ -120,12 +146,12 @@ int main (int argc, char** argv) {
  *  Inicia a Tabela de S�mbolos
  * ------------------------------------------------------------------- */
 
+   inicializaTS(&TS, TS_TAM);
+
    yyin=fp;
    yyparse();
-   inicializaTS(&TS, 2);
-   insere(&TS, "5", var_simples, criaVarSimples(var_simples, 0), 0);
-   insere(&TS, "10", var_simples, criaVarSimples(var_simples, 0), 0);
-   imprimeTS(&TS, 1);
+
+   imprimeTS(&TS, TS_TAM);
 
    return 0;
 }
