@@ -64,6 +64,8 @@ void imprimeTS(PILHA *TS, int tam);
 
 VAR_SIMPLES *criaVarSimples(TIPOS tipo, int deslocamento);
 
+void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars);
+
 void printVarSimples(VAR_SIMPLES *atributos);
 
 void printParamFormal(PARAM_FORMAL *atributos);

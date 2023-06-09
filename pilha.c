@@ -50,7 +50,7 @@ void destroiPilha(PILHA* pilha) {
 }
 
 void *buscaItem(PILHA *pilha, int pos) {
-    return (void *) (pilha->itens + (pilha->tam_dado * pos));
+    return pilha->itens[pos];
 }
 
 void imprimePilha(PILHA* pilha, void (*imprimeElemento)(void*)) {

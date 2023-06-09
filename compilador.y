@@ -24,7 +24,7 @@ int desloc;
 %token PROGRAM ABRE_PARENTESES FECHA_PARENTESES
 %token VIRGULA PONTO_E_VIRGULA DOIS_PONTOS PONTO
 %token T_BEGIN T_END VAR IDENT NUMERO ATRIBUICAO 
-%token LABEL TYPE ABRE_CHAVES FECHA_CHAVES
+%token LABEL INTEGER BOOLEAN ABRE_CHAVES FECHA_CHAVES
 %token ABRE_COLCHETES FECHA_COLCHETES ARRAY OF
 %token PROCEDURE FUNCTION GOTO IF THEN ELSE
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
@@ -51,7 +51,7 @@ programa    :{
 bloco       :
               parte_declara_vars
               {
-                  // empilha vars na TS
+                  
               }
 
               comando_composto
@@ -60,11 +60,7 @@ bloco       :
 
 
 /* REGRA 8 */
-parte_declara_vars:  var
-;
-
-
-var         : { desloc = 0; } VAR declara_vars
+parte_declara_vars:  { desloc = 0; } VAR declara_vars | declara_vars
             |
 ;
 
@@ -79,23 +75,16 @@ declara_var : { num_vars = 0; }
                   // Aloca memória pras variáveis
                   sprintf(comando, "AMEM %d", num_vars);
                   geraCodigo(NULL, comando);
-
-                  // // atualiza tipo das variáveis
-                  // switch (simbolo) {
-                  //    case simb_integer:
-                  //       atualizaTipo(inteiro, num_vars);
-                  //       break;
-                  //    case simb_boolean:
-                  //       atualizaTipo(booleano, num_vars);
-                  //       break;
-                  //    default:
-                  //       break;
-                  // }
               }
               PONTO_E_VIRGULA
 ;
 
-tipo        : IDENT
+tipo        : INTEGER {
+                  atualizaTipoVar(&TS, inteiro, num_vars);
+               }
+            | BOOLEAN {
+                  atualizaTipoVar(&TS, booleano, num_vars);
+               }
 ;
 
 lista_id_var: lista_id_var VIRGULA IDENT
@@ -118,10 +107,28 @@ lista_idents: lista_idents VIRGULA IDENT
 ;
 
 
+/* REGRA 16 */
 comando_composto: T_BEGIN comandos T_END
 
 comandos:
+         | comando PONTO_E_VIRGULA comandos
+         | comando
 ;
+
+/* REGRA 17 */
+comando: NUMERO DOIS_PONTOS comando_sem_rotulo
+         | comando_sem_rotulo
+;
+
+/* REGRA 18 */
+comando_sem_rotulo: IDENT
+                  {
+                     
+                  }
+                  comando_composto
+;
+
+// parte_declara_subrotinas: parte_declara_subrotinas;
 
 
 %%

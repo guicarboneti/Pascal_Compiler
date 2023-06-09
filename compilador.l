@@ -119,11 +119,15 @@ label { simbolo  = simb_label;
           return LABEL;
  }
 
-type { simbolo  = simb_type;
-          strncpy (token, yytext, TAM_TOKEN);
-          IMPRIME(" type ");
-          return TYPE;
- }
+integer { simbolo = simb_integer;
+           strncpy (token, yytext, TAM_TOKEN);
+           return INTEGER;
+}
+
+boolean { simbolo = simb_boolean; 
+              strncpy(token, yytext, TAM_TOKEN);
+              return BOOLEAN;
+}
 
 \{ { simbolo  = simb_abre_chaves;
           strncpy (token, yytext, TAM_TOKEN);

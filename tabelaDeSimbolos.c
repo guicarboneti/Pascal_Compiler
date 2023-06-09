@@ -42,7 +42,7 @@ void elimina(PILHA *TS, int n) {
 }
 
 void printVarSimples(VAR_SIMPLES *atributos) {
-    // printf(" / Desloc: %d / Tipo: %s", atributos->deslocamento, tipoToString(atributos->tipo));
+    printf("     | Desloc: %d | Tipo: %d\n\n", atributos->deslocamento, atributos->tipo);
 }
 
 void printParamFormal(PARAM_FORMAL *atributos) {
@@ -57,10 +57,9 @@ void printFuncao(FUNCAO *atributos) {
     return;
 }
 
-
 void imprimeSimbolo(void* item) {
     SIMBOLO *simb = item;
-    printf(" %s        %d            %d\n", simb->id, simb->categoria, simb->nivel_lex);
+    printf("%s       %d           %d\n", simb->id, simb->categoria, simb->nivel_lex);
 
     switch (simb->categoria) {
         case var_simples:
@@ -93,4 +92,29 @@ VAR_SIMPLES *criaVarSimples(TIPOS tipo, int deslocamento) {
     atributos->deslocamento = deslocamento;
 
     return atributos;
+}
+
+void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars) {
+    int i;
+    SIMBOLO *item;
+    VAR_SIMPLES *VS;
+    PARAM_FORMAL *PF;
+    if (!num_vars) return;
+
+    for(i=0; i<num_vars; i++) {
+        item = buscaItem(TS, TS->tamanho-i-1);
+        if (!item) {
+            fprintf(stderr, "ERRO - atualizaTipoVar() - stack smashed\n");
+            exit(-1);
+        }
+        if (item->categoria == var_simples) {
+            VS = item->atributos;
+            VS->tipo = tipo;
+        }
+        else if (item->categoria == param_formal) {
+            PF = item->atributos;
+            PF->tipo = tipo;
+        }
+    }
+
 }
