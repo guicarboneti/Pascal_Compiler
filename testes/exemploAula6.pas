@@ -1,6 +1,7 @@
 program exemploAula6 (input, output);
 var a, b :  integer;
-    c, d, e :  boolean;
-    f :  integer;
+    k1, temp :  integer;
 begin    
+    a := 0;
+    temp := 10;
 end.

@@ -77,7 +77,7 @@ declara_var : { num_vars = 0; }
               lista_id_var DOIS_PONTOS
               tipo
               { 
-                  // Aloca memória pras variáveis
+                  /* Aloca memória pras variáveis */
                   sprintf(comando, "AMEM %d", num_vars);
                   geraCodigo(NULL, comando);
               }

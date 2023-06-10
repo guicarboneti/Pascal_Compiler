@@ -4,6 +4,7 @@
 
 #include "pilha.h"
 #include "tabelaDeSimbolos.h"
+#include "compilador.h"
 
 void inicializaTS(PILHA *TS, int tam) {
     *TS = *criaPilha(tam, sizeof(SIMBOLO));
@@ -41,8 +42,43 @@ void elimina(PILHA *TS, int n) {
     return;
 }
 
+char *imprimeTipo(TIPOS tipo) {
+    char *aux;
+    switch (tipo) {
+        case inteiro:
+            aux = "inteiro";
+            break;
+        case booleano:
+            aux = "booleano";
+            break;
+        case tipo_indefinido:
+            aux = "indefinido";
+            break;
+    }
+    return aux;
+}
+
+char *imprimeCategoria(CATEGORIAS categoria) {
+    char *aux;
+    switch (categoria) {
+        case var_simples:
+            aux = "variavel simples";
+            break;
+        case param_formal:
+            aux = "parametro formal";
+            break;
+        case procedimento:
+            aux = "procedimento";
+            break;
+        case funcao:
+            aux = "funcao";
+            break;
+    }
+    return aux;
+}
+
 void printVarSimples(VAR_SIMPLES *atributos) {
-    printf("     | Desloc: %d | Tipo: %d\n\n", atributos->deslocamento, atributos->tipo);
+    printf("         %d       %s\n", atributos->deslocamento, imprimeTipo(atributos->tipo));
 }
 
 void printParamFormal(PARAM_FORMAL *atributos) {
@@ -59,7 +95,7 @@ void printFuncao(FUNCAO *atributos) {
 
 void imprimeSimbolo(void* item) {
     SIMBOLO *simb = item;
-    printf("%s       %d           %d\n", simb->id, simb->categoria, simb->nivel_lex);
+    printf(" %s       %s       %d", simb->id, imprimeCategoria(simb->categoria), simb->nivel_lex);
 
     switch (simb->categoria) {
         case var_simples:
@@ -80,8 +116,8 @@ void imprimeSimbolo(void* item) {
 }
 
 void imprimeTS(PILHA *TS, int tam) {
-    printf("\nPilha:\n");
-    printf("id | categoria | nivel_lex\n");
+    printf("\n                        PILHA\n----------------------------------------------------------\n");
+    printf(" id  |     categoria      | nivel_lex | Desloc |   Tipo\n----------------------------------------------------------\n");
     imprimePilha(TS, imprimeSimbolo);
 }
 
@@ -104,7 +140,7 @@ void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars) {
     for(i=0; i<num_vars; i++) {
         item = buscaItem(TS, TS->tamanho-i-1);
         if (!item) {
-            fprintf(stderr, "ERRO - atualizaTipoVar() - stack smashed\n");
+            imprimeErro("ERRO - atualizaTipoVar() - stack smashed");
             exit(-1);
         }
         if (item->categoria == var_simples) {

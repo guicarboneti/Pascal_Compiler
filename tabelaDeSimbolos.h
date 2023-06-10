@@ -74,6 +74,10 @@ void printProcedimento(PROCEDIMENTO *atributos);
 
 void printFuncao(FUNCAO *atributos);
 
+char *imprimeTipo(TIPOS tipo);
+
+char *imprimeCategoria(CATEGORIAS categoria);
+
 /* a completar aqui */
 
 #endif
