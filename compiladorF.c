@@ -51,6 +51,15 @@ int imprimeErro(char *erro)
 	exit(-1);
 }
 
+void inicializaPilhas(){
+	l_elem_pilha = criaPilha(TAM_L_ELEM_PILHA, (TAM_L_ELEM_PILHA + 1) * sizeof(char));
+	E = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
+    T = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
+    F = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
+    operacoes = criaPilha(TAM_OPERACOES_PILHA, sizeof(operacoes_t));
+}
+
+
 int checaCategoria(SIMBOLO *simb)
 {
 	return (simb->categoria == var_simples || simb->categoria == param_formal || simb->categoria == procedimento || simb->categoria == funcao);

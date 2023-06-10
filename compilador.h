@@ -16,6 +16,9 @@
 
 
 #define TAM_TOKEN 16
+#define TAM_ETF_PILHA 50
+#define TAM_OPERACOES_PILHA 50
+#define TAM_L_ELEM_PILHA 50
 
 typedef enum simbolos {
   simb_program,
@@ -89,6 +92,9 @@ extern char token[TAM_TOKEN];
 extern int nivel_lexico;
 extern int desloc;
 extern int nl;
+extern PILHA *l_elem_pilha;
+extern PILHA *E, *T, *F;
+extern PILHA *operacoes;
 
 
 /* -------------------------------------------------------------------
@@ -97,6 +103,7 @@ extern int nl;
 
 void geraCodigo (char*, char*);
 int imprimeErro ( char* );
+void inicializaPilhas();
 int checaCategoria(SIMBOLO* simb);
 char* opToString(operacoes_t operacao);
 int yylex();

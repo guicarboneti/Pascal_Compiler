@@ -293,6 +293,7 @@ int main (int argc, char** argv) {
  * ------------------------------------------------------------------- */
 
    inicializaTS(&TS, TS_TAM);
+   inicializaPilhas();
 
    yyin=fp;
    yyparse();
