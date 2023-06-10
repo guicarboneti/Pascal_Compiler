@@ -24,16 +24,18 @@ void insere(PILHA *TS, char *id, CATEGORIAS categoria, void *atributos, int nive
 }
 
 // devolve o índice na TS correspondente à última ocorrência de id
-int busca(PILHA *TS, char *id) {
+int buscaSimbolo(PILHA *TS, char *id) {
     if (pilhaVazia(TS)) return -1;
 
     SIMBOLO *item;
 
-    for (int i = TS->tamanho; i >= 0; i--) {
+    for (int i = TS->tamanho-1; i >= 0; i--) {
         item = buscaItem(TS, i);
         if (!strcmp(item->id, id))            
             return i;
     }
+
+    return -1;
 }
 
 // retira do topo da pilha as n últimas entradas 

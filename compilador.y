@@ -129,7 +129,7 @@ comando: NUMERO DOIS_PONTOS comando_sem_rotulo
 /* REGRA 18 */
 comando_sem_rotulo: IDENT
                   {
-                     int idx = busca(&TS, token);
+                     int idx = buscaSimbolo(&TS, token);
                      SIMBOLO *simb;
 
                      if(idx == -1)
@@ -163,7 +163,7 @@ comando_atribuicao: ATRIBUICAO
                   }
                   // expr
                   {
-                     int idx = busca(&TS, desempilha(l_elem_pilha));
+                     int idx = buscaSimbolo(&TS, desempilha(l_elem_pilha));
                      if(idx == -1)
                         imprimeErro("Simbolo não existe");
 
@@ -180,7 +180,7 @@ comando_atribuicao: ATRIBUICAO
                            t_simples = l_elem->atributos;
                            if(t_simples->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, t_simples->deslocamento);
+                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_simples->deslocamento);
                            break;
                         
                         case param_formal:
@@ -189,9 +189,9 @@ comando_atribuicao: ATRIBUICAO
                               imprimeErro("Tipos não correspondem");
                            
                            if (t_formal->tipo == valor)
-                              sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, t_formal->deslocamento);
+                              sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_formal->deslocamento);
                            else if (t_formal->tipo == referencia)
-                              sprintf(comando, "ARMI %d, %d", l_elem->nivel_lex, t_formal->deslocamento);
+                              sprintf(comando, "ARMI %d,%d", l_elem->nivel_lex, t_formal->deslocamento);
                            else
                               imprimeErro("Tipo de passsagem inválido");
                            break;
@@ -200,7 +200,7 @@ comando_atribuicao: ATRIBUICAO
                            t_funcao = l_elem->atributos;
                            if(t_funcao->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, t_funcao->deslocamento);
+                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_funcao->deslocamento);
                            break;
 
                         default:
