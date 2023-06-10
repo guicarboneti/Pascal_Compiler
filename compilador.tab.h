@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,6 +31,10 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
+
 #ifndef YY_YY_COMPILADOR_TAB_H_INCLUDED
 # define YY_YY_COMPILADOR_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -40,55 +45,60 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    PROGRAM = 258,
-    ABRE_PARENTESES = 259,
-    FECHA_PARENTESES = 260,
-    VIRGULA = 261,
-    PONTO_E_VIRGULA = 262,
-    DOIS_PONTOS = 263,
-    PONTO = 264,
-    T_BEGIN = 265,
-    T_END = 266,
-    VAR = 267,
-    IDENT = 268,
-    NUMERO = 269,
-    ATRIBUICAO = 270,
-    LABEL = 271,
-    INTEGER = 272,
-    BOOLEAN = 273,
-    ABRE_CHAVES = 274,
-    FECHA_CHAVES = 275,
-    ABRE_COLCHETES = 276,
-    FECHA_COLCHETES = 277,
-    ARRAY = 278,
-    OF = 279,
-    PROCEDURE = 280,
-    FUNCTION = 281,
-    GOTO = 282,
-    IF = 283,
-    THEN = 284,
-    ELSE = 285,
-    WHILE = 286,
-    DO = 287,
-    OR = 288,
-    AND = 289,
-    DIV = 290,
-    SOMA = 291,
-    SUBTRACAO = 292,
-    MULTIPLICACAO = 293,
-    IGUAL = 294,
-    DIFERENTE = 295,
-    MENOR = 296,
-    MAIOR = 297,
-    MENOR_IGUAL = 298,
-    MAIOR_IGUAL = 299,
-    NOT = 300
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    PROGRAM = 258,                 /* PROGRAM  */
+    ABRE_PARENTESES = 259,         /* ABRE_PARENTESES  */
+    FECHA_PARENTESES = 260,        /* FECHA_PARENTESES  */
+    VIRGULA = 261,                 /* VIRGULA  */
+    PONTO_E_VIRGULA = 262,         /* PONTO_E_VIRGULA  */
+    DOIS_PONTOS = 263,             /* DOIS_PONTOS  */
+    PONTO = 264,                   /* PONTO  */
+    T_BEGIN = 265,                 /* T_BEGIN  */
+    T_END = 266,                   /* T_END  */
+    VAR = 267,                     /* VAR  */
+    IDENT = 268,                   /* IDENT  */
+    NUMERO = 269,                  /* NUMERO  */
+    ATRIBUICAO = 270,              /* ATRIBUICAO  */
+    LABEL = 271,                   /* LABEL  */
+    INTEGER = 272,                 /* INTEGER  */
+    BOOLEAN = 273,                 /* BOOLEAN  */
+    ABRE_CHAVES = 274,             /* ABRE_CHAVES  */
+    FECHA_CHAVES = 275,            /* FECHA_CHAVES  */
+    ABRE_COLCHETES = 276,          /* ABRE_COLCHETES  */
+    FECHA_COLCHETES = 277,         /* FECHA_COLCHETES  */
+    ARRAY = 278,                   /* ARRAY  */
+    OF = 279,                      /* OF  */
+    PROCEDURE = 280,               /* PROCEDURE  */
+    FUNCTION = 281,                /* FUNCTION  */
+    GOTO = 282,                    /* GOTO  */
+    IF = 283,                      /* IF  */
+    THEN = 284,                    /* THEN  */
+    ELSE = 285,                    /* ELSE  */
+    WHILE = 286,                   /* WHILE  */
+    DO = 287,                      /* DO  */
+    OR = 288,                      /* OR  */
+    AND = 289,                     /* AND  */
+    DIV = 290,                     /* DIV  */
+    SOMA = 291,                    /* SOMA  */
+    SUBTRACAO = 292,               /* SUBTRACAO  */
+    MULTIPLICACAO = 293,           /* MULTIPLICACAO  */
+    IGUAL = 294,                   /* IGUAL  */
+    DIFERENTE = 295,               /* DIFERENTE  */
+    MENOR = 296,                   /* MENOR  */
+    MAIOR = 297,                   /* MAIOR  */
+    MENOR_IGUAL = 298,             /* MENOR_IGUAL  */
+    MAIOR_IGUAL = 299,             /* MAIOR_IGUAL  */
+    NOT = 300                      /* NOT  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -101,6 +111,8 @@ typedef int YYSTYPE;
 
 extern YYSTYPE yylval;
 
+
 int yyparse (void);
+
 
 #endif /* !YY_YY_COMPILADOR_TAB_H_INCLUDED  */

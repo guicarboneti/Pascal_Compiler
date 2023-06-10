@@ -11,6 +11,10 @@
  *
  * ------------------------------------------------------------------- */
 
+#include "pilha.h"
+#include "tabelaDeSimbolos.h"
+
+
 #define TAM_TOKEN 16
 
 typedef enum simbolos {
@@ -59,6 +63,21 @@ typedef enum simbolos {
   simb_mult
 } simbolos;
 
+typedef enum operacoes_t {
+    op_soma,
+    op_subt,
+    op_div,
+    op_mult,
+    op_and,
+    op_or,
+    op_not,
+    op_menor,
+    op_maior,
+    op_igual,
+    op_diferente,
+    op_menor_igual,
+    op_maior_igual
+} operacoes_t;
 
 
 /* -------------------------------------------------------------------
@@ -77,5 +96,8 @@ extern int nl;
  * ------------------------------------------------------------------- */
 
 void geraCodigo (char*, char*);
+int imprimeErro ( char* );
+int checaCategoria(SIMBOLO* simb);
+char* opToString(operacoes_t operacao);
 int yylex();
 void yyerror(const char *s);

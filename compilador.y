@@ -15,9 +15,13 @@
 int num_vars;
 PILHA TS;
 SIMBOLO *simb;
+SIMBOLO *l_elem;
 char comando[30];
 int nivel_lexico;
 int desloc;
+PILHA *l_elem_pilha;
+PILHA *E, *T, *F;
+PILHA *operacoes;
 
 %}
 
@@ -68,6 +72,7 @@ declara_vars: declara_vars declara_var
             | declara_var
 ;
 
+/* REGRA 9 */
 declara_var : { num_vars = 0; }
               lista_id_var DOIS_PONTOS
               tipo
@@ -87,6 +92,7 @@ tipo        : INTEGER {
                }
 ;
 
+/* REGRA 10 */
 lista_id_var: lista_id_var VIRGULA IDENT
               {
                   /* insere ultima vars na tabela de simbolos */ 
@@ -123,13 +129,146 @@ comando: NUMERO DOIS_PONTOS comando_sem_rotulo
 /* REGRA 18 */
 comando_sem_rotulo: IDENT
                   {
+                     int idx = busca(&TS, token);
+                     SIMBOLO *simb;
+
+                     if(idx == -1)
+                        imprimeErro("Simbolo não existe");
                      
+                     simb = buscaItem(&TS, idx);
+
+                     if(!checaCategoria(simb))
+                        imprimeErro("Símbolo não corresponde a variável simples, parâmetro formal, procedimento formal ou função");
+
+                     // armazena simbolo para posteriormente gerar ARMZ
+                     l_elem = simb;
                   }
-                  comando_composto
+                  identificador
+                  // | comando_composto
+                  // | comando_read
+                  // | comando_write
+                  // | comando_repetitivo
+                  // | comando_condicional
 ;
 
-// parte_declara_subrotinas: parte_declara_subrotinas;
+/* REGRA 18 - extra */
+identificador: comando_atribuicao
+            //| chama_proc
+;
 
+/* REGRA 19 */
+comando_atribuicao: ATRIBUICAO
+                  {
+                     empilha(l_elem_pilha, l_elem->id);
+                  }
+                  // expr
+                  {
+                     int idx = busca(&TS, desempilha(l_elem_pilha));
+                     if(idx == -1)
+                        imprimeErro("Simbolo não existe");
+
+                     l_elem = buscaItem(&TS, idx);
+                     TIPOS *t1 = desempilha(E);
+
+                     VAR_SIMPLES *t_simples;
+                     PARAM_FORMAL *t_formal;
+                     FUNCAO *t_funcao;
+
+                     switch(l_elem->categoria){
+
+                        case var_simples:
+                           t_simples = l_elem->atributos;
+                           if(t_simples->tipo != (*t1))
+                              imprimeErro("Tipos não correspondem");
+                           sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, t_simples->deslocamento);
+                           break;
+                        
+                        case param_formal:
+                           t_formal = l_elem->atributos;
+                           if (t_formal->tipo != (*t1))
+                              imprimeErro("Tipos não correspondem");
+                           
+                           if (t_formal->tipo == valor)
+                              sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, t_formal->deslocamento);
+                           else if (t_formal->tipo == referencia)
+                              sprintf(comando, "ARMI %d, %d", l_elem->nivel_lex, t_formal->deslocamento);
+                           else
+                              imprimeErro("Tipo de passsagem inválido");
+                           break;
+
+                        case funcao:
+                           t_funcao = l_elem->atributos;
+                           if(t_funcao->tipo != (*t1))
+                              imprimeErro("Tipos não correspondem");
+                           sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, t_funcao->deslocamento);
+                           break;
+
+                        default:
+                           imprimeErro("Categoria inválida");
+                           break;
+                     }
+
+                     geraCodigo(NULL, comando);
+                     l_elem = NULL;
+                  }
+;
+
+/* REGRA 25 */
+//expr: expr_simples
+      //| expr_simples relacao expr_simples
+         //{
+            //TIPOS *t1, *t2;
+            //t1 = desempilha(E);
+            //t2 = desempilha(E);
+
+            //if((*t1) != (*t2))
+               //imprimeErro("Tipos não correspondem");
+
+            //(*t1) = booleano;
+            //empilha(E, t1);
+
+            //operacoes_t *op = desempilha(operacoes);
+            //sprintf(comando, "%s", opToString((*op)));
+            //geraCodigo(NULL, comando);
+
+            //free(t1);
+            //free(t2);
+         //}
+//;
+
+/* REGRA 26 */
+relacao: IGUAL
+         {
+            operacoes_t op = op_igual;
+            empilha(operacoes, &op);
+         }
+      | DIFERENTE
+         {
+            operacoes_t = op_diferente;
+            empilha(operacoes, &op);
+         }
+      | MENOR
+         {
+            operacoes_t op = op_menor;
+            empilha(operacoes, &op);
+         }
+      | MAIOR
+         {
+            operacoes_t op = op_maior;
+            empilha(operacoes, &op);
+         }
+      | MENOR_IGUAL
+         {
+            operacoes_t op = op_menor_igual;
+            empilha(operacoes, &op);
+         }
+      | MAIOR_IGUAL
+         {
+            operacoes_t op = op_maior_igual;
+            empilha(operacoes,  &op);
+         }
+;
+// parte_declara_subrotinas: parte_declara_subrotinas;
 
 %%
 
