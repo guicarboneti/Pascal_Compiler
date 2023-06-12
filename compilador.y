@@ -95,13 +95,13 @@ tipo        : INTEGER {
 /* REGRA 10 */
 lista_id_var: lista_id_var VIRGULA IDENT
               {
-                  /* insere ultima vars na tabela de simbolos */ 
+                  /* insere ultima variavel na tabela de simbolos */ 
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
                   num_vars++;
                   desloc++;
               }
             | IDENT {
-                  /* insere vars na tabela de s�mbolos */
+                  /* insere variveis na tabela de simbolos */
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
                   num_vars++;
                   desloc++;
@@ -129,8 +129,8 @@ comando: NUMERO DOIS_PONTOS comando_sem_rotulo
 /* REGRA 18 */
 comando_sem_rotulo: IDENT
                   {
-                     int idx = buscaSimbolo(&TS, token);
                      SIMBOLO *simb;
+                     int idx = buscaSimbolo(&TS, token);
 
                      if(idx == -1)
                         imprimeErro("Simbolo não existe");
@@ -140,7 +140,7 @@ comando_sem_rotulo: IDENT
                      if(!checaCategoria(simb))
                         imprimeErro("Símbolo não corresponde a variável simples, parâmetro formal, procedimento formal ou função");
 
-                     // armazena simbolo para posteriormente gerar ARMZ
+                     /* armazena simbolo para posteriormente gerar ARMZ */
                      l_elem = simb;
                   }
                   identificador
@@ -160,8 +160,12 @@ identificador: comando_atribuicao
 comando_atribuicao: ATRIBUICAO
                   {
                      empilha(l_elem_pilha, l_elem->id);
+                     SIMBOLO *aux = topo(l_elem_pilha);
+                     printf("-----> %s\n", aux->id);
+                     // printf("----> %s\n", l_elem_pilha->itens[0]->id);
+                     // imprimeTS(l_elem_pilha, l_elem_pilha->tamanho);
                   }
-                  // expr
+                  expressao
                   {
                      int idx = buscaSimbolo(&TS, desempilha(l_elem_pilha));
                      if(idx == -1)
@@ -213,10 +217,15 @@ comando_atribuicao: ATRIBUICAO
                   }
 ;
 
+// /* REGRA 24 */
+lista_expressoes: lista_expressoes VIRGULA expressao
+                  | expressao
+                  |
+;
+
 /* REGRA 25 */
-//expr: expr_simples
-      //| expr_simples relacao expr_simples
-         //{
+expressao: expressao_simples | expressao_simples relacao expressao_simples
+         {
             //TIPOS *t1, *t2;
             //t1 = desempilha(E);
             //t2 = desempilha(E);
@@ -233,41 +242,71 @@ comando_atribuicao: ATRIBUICAO
 
             //free(t1);
             //free(t2);
-         //}
-//;
+         }
+;
 
 /* REGRA 26 */
 relacao: IGUAL
          {
-            operacoes_t op = op_igual;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_igual;
+            // empilha(operacoes, &op);
          }
       | DIFERENTE
          {
-            operacoes_t = op_diferente;
-            empilha(operacoes, &op);
+            // operacoes_t = op_diferente;
+            // empilha(operacoes, &op);
          }
       | MENOR
          {
-            operacoes_t op = op_menor;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_menor;
+            // empilha(operacoes, &op);
          }
       | MAIOR
          {
-            operacoes_t op = op_maior;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_maior;
+            // empilha(operacoes, &op);
          }
       | MENOR_IGUAL
          {
-            operacoes_t op = op_menor_igual;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_menor_igual;
+            // empilha(operacoes, &op);
          }
       | MAIOR_IGUAL
          {
-            operacoes_t op = op_maior_igual;
-            empilha(operacoes,  &op);
+            // operacoes_t op = op_maior_igual;
+            // empilha(operacoes,  &op);
          }
 ;
+
+/* REGRA 27 */
+expressao_simples: expressao_simples operacao termo | sinal termo | termo;
+
+operacao: sinal | DIV | MULTIPLICACAO | AND | OR;
+
+sinal: SOMA | SUBTRACAO;
+
+/* REGRA 28 */
+termo: fator | termo operacao fator;
+
+/* REGRA 29 */
+fator: IDENT | NUMERO | chama_func | expressao | NOT fator;
+
+///* REGRA 20 */
+// chama_proc:;
+
+///* REGRA 21 */
+// desvio:;
+
+///* REGRA 22 */
+// comando_condicional:;
+
+///* REGRA 23 */
+// comando_repetitivo:;
+
+/* REGRA 31 */
+chama_func: IDENT | lista_expressoes;
+
+///* REGRA 11 */
 // parte_declara_subrotinas: parte_declara_subrotinas;
 
 %%

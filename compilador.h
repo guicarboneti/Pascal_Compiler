@@ -14,7 +14,6 @@
 #include "pilha.h"
 #include "tabelaDeSimbolos.h"
 
-
 #define TAM_TOKEN 16
 #define TAM_ETF_PILHA 50
 #define TAM_OPERACOES_PILHA 50
