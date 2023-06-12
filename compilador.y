@@ -160,10 +160,6 @@ identificador: comando_atribuicao
 comando_atribuicao: ATRIBUICAO
                   {
                      empilha(l_elem_pilha, l_elem->id);
-                     SIMBOLO *aux = topo(l_elem_pilha);
-                     printf("-----> %s\n", aux->id);
-                     // printf("----> %s\n", l_elem_pilha->itens[0]->id);
-                     // imprimeTS(l_elem_pilha, l_elem_pilha->tamanho);
                   }
                   expressao
                   {
@@ -226,22 +222,22 @@ lista_expressoes: lista_expressoes VIRGULA expressao
 /* REGRA 25 */
 expressao: expressao_simples | expressao_simples relacao expressao_simples
          {
-            //TIPOS *t1, *t2;
-            //t1 = desempilha(E);
-            //t2 = desempilha(E);
+            // TIPOS *t1, *t2;
+            // t1 = desempilha(E);
+            // t2 = desempilha(E);
 
-            //if((*t1) != (*t2))
-               //imprimeErro("Tipos não correspondem");
+            // if((*t1) != (*t2))
+            //    imprimeErro("Tipos não correspondem");
 
-            //(*t1) = booleano;
-            //empilha(E, t1);
+            // (*t1) = booleano;
+            // empilha(E, t1);
 
-            //operacoes_t *op = desempilha(operacoes);
-            //sprintf(comando, "%s", opToString((*op)));
-            //geraCodigo(NULL, comando);
+            // operacoes_t *op = desempilha(operacoes);
+            // sprintf(comando, "%s", opToString((*op)));
+            // geraCodigo(NULL, comando);
 
-            //free(t1);
-            //free(t2);
+            // free(t1);
+            // free(t2);
          }
 ;
 
@@ -289,7 +285,19 @@ sinal: SOMA | SUBTRACAO;
 termo: fator | termo operacao fator;
 
 /* REGRA 29 */
-fator: IDENT | NUMERO | chama_func | expressao | NOT fator;
+fator: IDENT {}
+      | NUMERO {
+         /* carrega constante */
+         sprintf(comando, "CRCT %s", token);
+         geraCodigo(NULL, comando);
+
+         // if (proc) checaParam();
+
+         /* empilha o tipo inteiro */
+         TIPOS tipo = inteiro;
+         empilha(F, &tipo);
+      }
+| chama_func | expressao | NOT fator;
 
 ///* REGRA 20 */
 // chama_proc:;
