@@ -33,7 +33,7 @@ PILHA *operacoes;
 %token PROCEDURE FUNCTION GOTO IF THEN ELSE
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
-%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT
+%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
 
 %%
 
@@ -145,8 +145,8 @@ comando_sem_rotulo: IDENT
                   }
                   identificador
                   // | comando_composto
-                  // | comando_read
-                  // | comando_write
+                  | comando_read
+                  | comando_write
                   // | comando_repetitivo
                   // | comando_condicional
 ;
@@ -170,43 +170,36 @@ comando_atribuicao: ATRIBUICAO
                      l_elem = buscaItem(&TS, idx);
                      TIPOS *t1 = desempilha(E);
 
-                     VAR_SIMPLES *t_simples;
-                     PARAM_FORMAL *t_formal;
-                     FUNCAO *t_funcao;
+                     VAR_SIMPLES *VS;
+                     PARAM_FORMAL *PF;
+                     FUNCAO *FUN;
 
-                     switch(l_elem->categoria){
-
-                        case var_simples:
-                           t_simples = l_elem->atributos;
-                           if(t_simples->tipo != (*t1))
+                     if (l_elem->categoria == var_simples) {
+                           VS = l_elem->atributos;
+                           if(VS->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_simples->deslocamento);
-                           break;
-                        
-                        case param_formal:
-                           t_formal = l_elem->atributos;
-                           if (t_formal->tipo != (*t1))
+                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, VS->deslocamento);
+                     }
+                     else if (l_elem->categoria == param_formal){
+                           PF = l_elem->atributos;
+                           if (PF->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
                            
-                           if (t_formal->tipo == valor)
-                              sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_formal->deslocamento);
-                           else if (t_formal->tipo == referencia)
-                              sprintf(comando, "ARMI %d,%d", l_elem->nivel_lex, t_formal->deslocamento);
+                           if (PF->parametro == valor)
+                              sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, PF->deslocamento);
+                           else if (PF->parametro == referencia)
+                              sprintf(comando, "ARMI %d,%d", l_elem->nivel_lex, PF->deslocamento);
                            else
-                              imprimeErro("Tipo de passsagem inválido");
-                           break;
-
-                        case funcao:
-                           t_funcao = l_elem->atributos;
-                           if(t_funcao->tipo != (*t1))
-                              imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_funcao->deslocamento);
-                           break;
-
-                        default:
-                           imprimeErro("Categoria inválida");
-                           break;
+                              imprimeErro("Tipo de passsagem de parâmetro inválido");
                      }
+                        if (l_elem->categoria == funcao) {
+                           FUN = l_elem->atributos;
+                           if(FUN->tipo != (*t1))
+                              imprimeErro("Tipos não correspondem");
+                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, FUN->deslocamento);
+                        }
+                        else
+                           imprimeErro("Categoria inválida");
 
                      geraCodigo(NULL, comando);
                      l_elem = NULL;
@@ -316,6 +309,87 @@ chama_func: IDENT | lista_expressoes;
 
 ///* REGRA 11 */
 // parte_declara_subrotinas: parte_declara_subrotinas;
+
+/* REGRA LEITURA */
+comando_read: READ ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES
+;
+
+/* parâmetros do read */
+paramentros_leitura: paramentros_leitura VIRGULA IDENT
+            {
+               SIMBOLO *item;
+               VAR_SIMPLES *VS;
+               PARAM_FORMAL *PF;
+
+               int idx = buscaSimbolo(&TS, token);
+               if (idx == -1)
+                  imprimeErro("[ERRO] read() - Simbolo inexistente");
+
+               geraCodigo(NULL, "LEIT");
+
+               item = buscaItem(&TS, idx);
+
+               if (item->categoria == var_simples) {
+                     VS = item->atributos;
+                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+               }
+               else if (item->categoria == param_formal){
+                     PF = item->atributos;
+                     if (PF->parametro == valor)
+                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                     else if (PF->parametro == referencia)
+                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+               }
+               else
+                  imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
+
+               geraCodigo(NULL, comando);
+            }
+           | IDENT
+            {
+               SIMBOLO *item;
+               VAR_SIMPLES *VS;
+               PARAM_FORMAL *PF;
+
+               int idx = buscaSimbolo(&TS, token);
+               if (idx == -1)
+                  imprimeErro("[ERRO] read() - Simbolo inexistente");
+
+               geraCodigo(NULL, "LEIT");
+
+               item = buscaItem(&TS, idx);
+
+               if (item->categoria == var_simples) {
+                     VS = item->atributos;
+                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+               }
+               else if (item->categoria == param_formal){
+                     PF = item->atributos;
+                     if (PF->parametro == valor)
+                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                     else if (PF->parametro == referencia)
+                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+               }
+               else
+                  imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
+
+               geraCodigo(NULL, comando);
+            }
+;
+
+/* REGRA ESCRITA */
+comando_write: WRITE ABRE_PARENTESES parametros_escrita FECHA_PARENTESES;
+
+/* parâmetros do write */
+parametros_escrita: parametros_escrita VIRGULA expressao
+            {
+               geraCodigo(NULL, "IMPR");
+            }
+           | expressao
+            {
+               geraCodigo(NULL, "IMPR");
+            }
+;
 
 %%
 
