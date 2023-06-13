@@ -168,7 +168,7 @@ comando_atribuicao: ATRIBUICAO
                         imprimeErro("Simbolo não existe");
 
                      l_elem = buscaItem(&TS, idx);
-                     TIPOS *t1 = desempilha(E);
+                     // TIPOS *t1 = desempilha(E);
 
                      VAR_SIMPLES *VS;
                      PARAM_FORMAL *PF;
@@ -176,14 +176,14 @@ comando_atribuicao: ATRIBUICAO
 
                      if (l_elem->categoria == var_simples) {
                            VS = l_elem->atributos;
-                           if(VS->tipo != (*t1))
-                              imprimeErro("Tipos não correspondem");
+                           // if(VS->tipo != (*t1))
+                           //    imprimeErro("Tipos não correspondem");
                            sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, VS->deslocamento);
                      }
                      else if (l_elem->categoria == param_formal){
                            PF = l_elem->atributos;
-                           if (PF->tipo != (*t1))
-                              imprimeErro("Tipos não correspondem");
+                           // if (PF->tipo != (*t1))
+                           //    imprimeErro("Tipos não correspondem");
                            
                            if (PF->parametro == valor)
                               sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, PF->deslocamento);
@@ -192,14 +192,14 @@ comando_atribuicao: ATRIBUICAO
                            else
                               imprimeErro("Tipo de passsagem de parâmetro inválido");
                      }
-                        if (l_elem->categoria == funcao) {
-                           FUN = l_elem->atributos;
-                           if(FUN->tipo != (*t1))
-                              imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, FUN->deslocamento);
-                        }
-                        else
-                           imprimeErro("Categoria inválida");
+                     else if (l_elem->categoria == funcao) {
+                        FUN = l_elem->atributos;
+                        // if(FUN->tipo != (*t1))
+                        //    imprimeErro("Tipos não correspondem");
+                        sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, FUN->deslocamento);
+                     }
+                     else
+                        imprimeErro("Categoria inválida");
 
                      geraCodigo(NULL, comando);
                      l_elem = NULL;
