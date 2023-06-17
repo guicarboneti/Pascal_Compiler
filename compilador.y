@@ -33,7 +33,7 @@ PILHA *operacoes;
 %token PROCEDURE FUNCTION GOTO IF THEN ELSE
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
-%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT
+%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
 
 %%
 
@@ -95,13 +95,13 @@ tipo        : INTEGER {
 /* REGRA 10 */
 lista_id_var: lista_id_var VIRGULA IDENT
               {
-                  /* insere ultima vars na tabela de simbolos */ 
+                  /* insere ultima variavel na tabela de simbolos */ 
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
                   num_vars++;
                   desloc++;
               }
             | IDENT {
-                  /* insere vars na tabela de s�mbolos */
+                  /* insere variveis na tabela de simbolos */
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
                   num_vars++;
                   desloc++;
@@ -129,8 +129,8 @@ comando: NUMERO DOIS_PONTOS comando_sem_rotulo
 /* REGRA 18 */
 comando_sem_rotulo: IDENT
                   {
-                     int idx = buscaSimbolo(&TS, token);
                      SIMBOLO *simb;
+                     int idx = buscaSimbolo(&TS, token);
 
                      if(idx == -1)
                         imprimeErro("Simbolo não existe");
@@ -140,13 +140,13 @@ comando_sem_rotulo: IDENT
                      if(!checaCategoria(simb))
                         imprimeErro("Símbolo não corresponde a variável simples, parâmetro formal, procedimento formal ou função");
 
-                     // armazena simbolo para posteriormente gerar ARMZ
+                     /* armazena simbolo para posteriormente gerar ARMZ */
                      l_elem = simb;
                   }
                   identificador
                   // | comando_composto
-                  // | comando_read
-                  // | comando_write
+                  | comando_read
+                  | comando_write
                   // | comando_repetitivo
                   // | comando_condicional
 ;
@@ -161,7 +161,7 @@ comando_atribuicao: ATRIBUICAO
                   {
                      empilha(l_elem_pilha, l_elem->id);
                   }
-                  // expr
+                  expressao
                   {
                      int idx = buscaSimbolo(&TS, desempilha(l_elem_pilha));
                      if(idx == -1)
@@ -170,105 +170,226 @@ comando_atribuicao: ATRIBUICAO
                      l_elem = buscaItem(&TS, idx);
                      TIPOS *t1 = desempilha(E);
 
-                     VAR_SIMPLES *t_simples;
-                     PARAM_FORMAL *t_formal;
-                     FUNCAO *t_funcao;
+                     VAR_SIMPLES *VS;
+                     PARAM_FORMAL *PF;
+                     FUNCAO *FUN;
 
-                     switch(l_elem->categoria){
-
-                        case var_simples:
-                           t_simples = l_elem->atributos;
-                           if(t_simples->tipo != (*t1))
+                     if (l_elem->categoria == var_simples) {
+                           VS = l_elem->atributos;
+                           if(VS->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_simples->deslocamento);
-                           break;
-                        
-                        case param_formal:
-                           t_formal = l_elem->atributos;
-                           if (t_formal->tipo != (*t1))
+                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, VS->deslocamento);
+                     }
+                     else if (l_elem->categoria == param_formal){
+                           PF = l_elem->atributos;
+                           if (PF->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
                            
-                           if (t_formal->tipo == valor)
-                              sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_formal->deslocamento);
-                           else if (t_formal->tipo == referencia)
-                              sprintf(comando, "ARMI %d,%d", l_elem->nivel_lex, t_formal->deslocamento);
+                           if (PF->parametro == valor)
+                              sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, PF->deslocamento);
+                           else if (PF->parametro == referencia)
+                              sprintf(comando, "ARMI %d,%d", l_elem->nivel_lex, PF->deslocamento);
                            else
-                              imprimeErro("Tipo de passsagem inválido");
-                           break;
-
-                        case funcao:
-                           t_funcao = l_elem->atributos;
-                           if(t_funcao->tipo != (*t1))
-                              imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, t_funcao->deslocamento);
-                           break;
-
-                        default:
-                           imprimeErro("Categoria inválida");
-                           break;
+                              imprimeErro("Tipo de passsagem de parâmetro inválido");
                      }
+                     else if (l_elem->categoria == funcao) {
+                        FUN = l_elem->atributos;
+                        if(FUN->tipo != (*t1))
+                           imprimeErro("Tipos não correspondem");
+                        sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, FUN->deslocamento);
+                     }
+                     else
+                        imprimeErro("Categoria inválida");
 
                      geraCodigo(NULL, comando);
                      l_elem = NULL;
                   }
 ;
 
+// /* REGRA 24 */
+lista_expressoes: lista_expressoes VIRGULA expressao
+                  | expressao
+                  |
+;
+
 /* REGRA 25 */
-//expr: expr_simples
-      //| expr_simples relacao expr_simples
-         //{
-            //TIPOS *t1, *t2;
-            //t1 = desempilha(E);
-            //t2 = desempilha(E);
+expressao: expressao_simples | expressao_simples relacao expressao_simples
+         {
+            // TIPOS *t1, *t2;
+            // t1 = desempilha(E);
+            // t2 = desempilha(E);
 
-            //if((*t1) != (*t2))
-               //imprimeErro("Tipos não correspondem");
+            // if((*t1) != (*t2))
+            //    imprimeErro("Tipos não correspondem");
 
-            //(*t1) = booleano;
-            //empilha(E, t1);
+            // (*t1) = booleano;
+            // empilha(E, t1);
 
-            //operacoes_t *op = desempilha(operacoes);
-            //sprintf(comando, "%s", opToString((*op)));
-            //geraCodigo(NULL, comando);
+            // operacoes_t *op = desempilha(operacoes);
+            // sprintf(comando, "%s", opToString((*op)));
+            // geraCodigo(NULL, comando);
 
-            //free(t1);
-            //free(t2);
-         //}
-//;
+            // free(t1);
+            // free(t2);
+         }
+;
 
 /* REGRA 26 */
 relacao: IGUAL
          {
-            operacoes_t op = op_igual;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_igual;
+            // empilha(operacoes, &op);
          }
       | DIFERENTE
          {
-            operacoes_t = op_diferente;
-            empilha(operacoes, &op);
+            // operacoes_t = op_diferente;
+            // empilha(operacoes, &op);
          }
       | MENOR
          {
-            operacoes_t op = op_menor;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_menor;
+            // empilha(operacoes, &op);
          }
       | MAIOR
          {
-            operacoes_t op = op_maior;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_maior;
+            // empilha(operacoes, &op);
          }
       | MENOR_IGUAL
          {
-            operacoes_t op = op_menor_igual;
-            empilha(operacoes, &op);
+            // operacoes_t op = op_menor_igual;
+            // empilha(operacoes, &op);
          }
       | MAIOR_IGUAL
          {
-            operacoes_t op = op_maior_igual;
-            empilha(operacoes,  &op);
+            // operacoes_t op = op_maior_igual;
+            // empilha(operacoes,  &op);
          }
 ;
+
+/* REGRA 27 */
+expressao_simples: expressao_simples operacao termo | sinal termo | termo;
+
+operacao: sinal | DIV | MULTIPLICACAO | AND | OR;
+
+sinal: SOMA | SUBTRACAO;
+
+/* REGRA 28 */
+termo: fator | termo operacao fator;
+
+/* REGRA 29 */
+fator: IDENT {}
+      | NUMERO {
+         /* carrega constante */
+         sprintf(comando, "CRCT %s", token);
+         geraCodigo(NULL, comando);
+
+         // if (proc) checaParam();
+
+         /* empilha o tipo inteiro */
+         TIPOS tipo = inteiro;
+         empilha(F, &tipo);
+      }
+| chama_func | expressao | NOT fator;
+
+///* REGRA 20 */
+// chama_proc:;
+
+///* REGRA 21 */
+// desvio:;
+
+///* REGRA 22 */
+// comando_condicional:;
+
+///* REGRA 23 */
+// comando_repetitivo:;
+
+/* REGRA 31 */
+chama_func: IDENT | lista_expressoes;
+
+///* REGRA 11 */
 // parte_declara_subrotinas: parte_declara_subrotinas;
+
+/* REGRA LEITURA */
+comando_read: READ ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES
+;
+
+/* parâmetros do read */
+paramentros_leitura: paramentros_leitura VIRGULA IDENT
+            {
+               SIMBOLO *item;
+               VAR_SIMPLES *VS;
+               PARAM_FORMAL *PF;
+
+               int idx = buscaSimbolo(&TS, token);
+               if (idx == -1)
+                  imprimeErro("[ERRO] read() - Simbolo inexistente");
+
+               geraCodigo(NULL, "LEIT");
+
+               item = buscaItem(&TS, idx);
+
+               if (item->categoria == var_simples) {
+                     VS = item->atributos;
+                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+               }
+               else if (item->categoria == param_formal){
+                     PF = item->atributos;
+                     if (PF->parametro == valor)
+                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                     else if (PF->parametro == referencia)
+                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+               }
+               else
+                  imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
+
+               geraCodigo(NULL, comando);
+            }
+           | IDENT
+            {
+               SIMBOLO *item;
+               VAR_SIMPLES *VS;
+               PARAM_FORMAL *PF;
+
+               int idx = buscaSimbolo(&TS, token);
+               if (idx == -1)
+                  imprimeErro("[ERRO] read() - Simbolo inexistente");
+
+               geraCodigo(NULL, "LEIT");
+
+               item = buscaItem(&TS, idx);
+
+               if (item->categoria == var_simples) {
+                     VS = item->atributos;
+                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+               }
+               else if (item->categoria == param_formal){
+                     PF = item->atributos;
+                     if (PF->parametro == valor)
+                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                     else if (PF->parametro == referencia)
+                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+               }
+               else
+                  imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
+
+               geraCodigo(NULL, comando);
+            }
+;
+
+/* REGRA ESCRITA */
+comando_write: WRITE ABRE_PARENTESES parametros_escrita FECHA_PARENTESES;
+
+/* parâmetros do write */
+parametros_escrita: parametros_escrita VIRGULA expressao
+            {
+               geraCodigo(NULL, "IMPR");
+            }
+           | expressao
+            {
+               geraCodigo(NULL, "IMPR");
+            }
+;
 
 %%
 

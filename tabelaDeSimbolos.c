@@ -80,7 +80,7 @@ char *imprimeCategoria(CATEGORIAS categoria) {
 }
 
 void printVarSimples(VAR_SIMPLES *atributos) {
-    printf("         %d       %s\n", atributos->deslocamento, imprimeTipo(atributos->tipo));
+    printf("%10d %12s\n", atributos->deslocamento, imprimeTipo(atributos->tipo));
 }
 
 void printParamFormal(PARAM_FORMAL *atributos) {
@@ -97,7 +97,7 @@ void printFuncao(FUNCAO *atributos) {
 
 void imprimeSimbolo(void* item) {
     SIMBOLO *simb = item;
-    printf(" %s       %s       %d", simb->id, imprimeCategoria(simb->categoria), simb->nivel_lex);
+    printf("%3s %20s %8d", simb->id, imprimeCategoria(simb->categoria), simb->nivel_lex);
 
     switch (simb->categoria) {
         case var_simples:
@@ -118,7 +118,7 @@ void imprimeSimbolo(void* item) {
 }
 
 void imprimeTS(PILHA *TS, int tam) {
-    printf("\n                        PILHA\n----------------------------------------------------------\n");
+    printf("\n                  TABELA DE SIMBOLOS\n----------------------------------------------------------\n");
     printf(" id  |     categoria      | nivel_lex | Desloc |   Tipo\n----------------------------------------------------------\n");
     imprimePilha(TS, imprimeSimbolo);
 }

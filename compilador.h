@@ -14,7 +14,6 @@
 #include "pilha.h"
 #include "tabelaDeSimbolos.h"
 
-
 #define TAM_TOKEN 16
 #define TAM_ETF_PILHA 50
 #define TAM_OPERACOES_PILHA 50
@@ -63,7 +62,9 @@ typedef enum simbolos {
   simb_div,
   simb_soma,
   simb_subt,
-  simb_mult
+  simb_mult,
+  simb_read,
+  simb_write
 } simbolos;
 
 typedef enum operacoes_t {
