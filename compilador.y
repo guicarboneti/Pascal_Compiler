@@ -22,6 +22,7 @@ int desloc;
 PILHA *l_elem_pilha;
 PILHA *E, *T, *F;
 PILHA *operacoes;
+PILHA *rotulos;
 
 %}
 
@@ -34,6 +35,11 @@ PILHA *operacoes;
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
 %token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
+
+/* Para assegurar o funcionamento do IF THEN ELSE
+   Precedências são crescentes, logo "lower_than_else" < "else" */
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 %%
 
@@ -148,7 +154,7 @@ comando_sem_rotulo: IDENT
                   | comando_read
                   | comando_write
                   // | comando_repetitivo
-                  // | comando_condicional
+                  | comando_condicional
 ;
 
 /* REGRA 18 - extra */
@@ -215,55 +221,55 @@ lista_expressoes: lista_expressoes VIRGULA expressao
 /* REGRA 25 */
 expressao: expressao_simples | expressao_simples relacao expressao_simples
          {
-            // TIPOS *t1, *t2;
-            // t1 = desempilha(E);
-            // t2 = desempilha(E);
+            TIPOS *t1, *t2;
+            t1 = desempilha(E);
+            t2 = desempilha(E);
 
-            // if((*t1) != (*t2))
-            //    imprimeErro("Tipos não correspondem");
+            if((*t1) != (*t2))
+               imprimeErro("Tipos não correspondem");
 
-            // (*t1) = booleano;
-            // empilha(E, t1);
+            (*t1) = booleano;
+            empilha(E, t1);
 
-            // operacoes_t *op = desempilha(operacoes);
-            // sprintf(comando, "%s", opToString((*op)));
-            // geraCodigo(NULL, comando);
+            operacoes_t *op = desempilha(operacoes);
+            sprintf(comando, "%s", opToString((*op)));
+            geraCodigo(NULL, comando);
 
-            // free(t1);
-            // free(t2);
+            free(t1);
+            free(t2);
          }
 ;
 
 /* REGRA 26 */
 relacao: IGUAL
          {
-            // operacoes_t op = op_igual;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_igual;
+            empilha(operacoes, &op);
          }
       | DIFERENTE
          {
-            // operacoes_t = op_diferente;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_diferente;
+            empilha(operacoes, &op);
          }
       | MENOR
          {
-            // operacoes_t op = op_menor;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_menor;
+            empilha(operacoes, &op);
          }
       | MAIOR
          {
-            // operacoes_t op = op_maior;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_maior;
+            empilha(operacoes, &op);
          }
       | MENOR_IGUAL
          {
-            // operacoes_t op = op_menor_igual;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_menor_igual;
+            empilha(operacoes, &op);
          }
       | MAIOR_IGUAL
          {
-            // operacoes_t op = op_maior_igual;
-            // empilha(operacoes,  &op);
+            operacoes_t op = op_maior_igual;
+            empilha(operacoes,  &op);
          }
 ;
 
@@ -299,7 +305,65 @@ fator: IDENT {}
 // desvio:;
 
 ///* REGRA 22 */
-// comando_condicional:;
+comando_condicional:
+                     {
+                        empilha(rotulos, prox_rotulo());
+                        empilha(rotulos, prox_rotulo());
+                     }
+                     if_then cond_else
+                     {
+                        free(desempilha(rotulos));
+                        free(desempilha(rotulos));
+                     }
+;
+
+/* REGRA 22 - extra */
+if_then: IF expressao
+         {
+            // verifica se expressão é booleana
+            TIPOS *t1;
+            t1 = desempilha(E);
+
+            if ((*t1) != booleano){
+               imprimeErro("Expressão não é booleana");
+            }
+
+            free(t1);
+
+            // Gera DSVF com rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            sprintf(comando, "DSVF %s", rotulo);
+            geraCodigo(NULL, comando);
+         }
+         THEN comando_sem_rotulo
+;
+
+/* REGRA 22 - extra */
+cond_else: ELSE
+         {
+            char *rotulo;
+            // Gera DSVS com primeiro rotulo
+            rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            sprintf(comando, "DSVS %s", rotulo);
+            geraCodigo(NULL, comando);
+
+            // Gera NADA com segundo rotulo
+            rotulo = buscaItem(rotulos, rotulos->tamanho);
+            geraCodigo(rotulo, "NADA");
+         }
+            comando_sem_rotulo
+         {
+            // Gera NADA com primeiro rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            geraCodigo(rotulo, "NADA");
+         }
+         | %prec LOWER_THAN_ELSE
+         {
+            // Gera NADA com segundo rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho);
+            geraCodigo(rotulo, "NADA");
+         }
+;
 
 ///* REGRA 23 */
 // comando_repetitivo:;
