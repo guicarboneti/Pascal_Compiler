@@ -70,7 +70,8 @@ int checaCategoria(SIMBOLO *simb)
 char *prox_rotulo() {
 	char *rotulo = malloc((ROT_SIZE + 1) * sizeof(char));
 
-    sprintf(rotulo, "R%.2d", rotulos_cont++);
+    // sprintf(rotulo, "R%.2d\n", rotulos_cont++);
+
     rotulo[ROT_SIZE + 1] = '\0';
 
     return rotulo;

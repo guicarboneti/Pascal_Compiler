@@ -95,6 +95,7 @@ extern char token[TAM_TOKEN];
 extern int nivel_lexico;
 extern int desloc;
 extern int nl;
+extern int num_params;
 extern PILHA *l_elem_pilha;
 extern PILHA *E, *T, *F;
 extern PILHA *operacoes;
