@@ -22,6 +22,10 @@ int desloc;
 PILHA *l_elem_pilha;
 PILHA *E, *T, *F;
 PILHA *operacoes;
+PILHA *rotulos;
+int num_params;
+char erro[200];
+char ident[30];
 
 %}
 
@@ -34,6 +38,11 @@ PILHA *operacoes;
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
 %token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
+
+/* Para assegurar o funcionamento do IF THEN ELSE
+   Precedências são crescentes, logo "lower_than_else" < "else" */
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 %%
 
@@ -148,7 +157,7 @@ comando_sem_rotulo: IDENT
                   | comando_read
                   | comando_write
                   // | comando_repetitivo
-                  // | comando_condicional
+                  | comando_condicional
 ;
 
 /* REGRA 18 - extra */
@@ -207,80 +216,181 @@ comando_atribuicao: ATRIBUICAO
 ;
 
 // /* REGRA 24 */
-lista_expressoes: lista_expressoes VIRGULA expressao
+lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
                   | expressao
                   |
 ;
 
 /* REGRA 25 */
-expressao: expressao_simples | expressao_simples relacao expressao_simples
+expressao: expressao_simples 
+      | expressao_simples relacao expressao_simples
          {
-            // TIPOS *t1, *t2;
-            // t1 = desempilha(E);
-            // t2 = desempilha(E);
+            //fprintf(stderr, "DEBUG - Regra E = E <> E\n");
+            // E <> E
+            TIPOS *t1, *t2;
+            t1 = desempilha(E);
+            t2 = desempilha(E);
 
-            // if((*t1) != (*t2))
-            //    imprimeErro("Tipos não correspondem");
+            if((*t1) != (*t2))
+               imprimeErro("Tipos não correspondem");
 
-            // (*t1) = booleano;
-            // empilha(E, t1);
+            (*t1) = booleano;
+            empilha(E, t1);
 
-            // operacoes_t *op = desempilha(operacoes);
-            // sprintf(comando, "%s", opToString((*op)));
-            // geraCodigo(NULL, comando);
+            operacoes_t *op = desempilha(operacoes);
+            sprintf(comando, "%s", opToString((*op)));
+            geraCodigo(NULL, comando);
 
-            // free(t1);
-            // free(t2);
+            free(t1);
+            free(t2);
          }
 ;
 
 /* REGRA 26 */
 relacao: IGUAL
          {
-            // operacoes_t op = op_igual;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_igual;
+            empilha(operacoes, &op);
          }
       | DIFERENTE
          {
-            // operacoes_t = op_diferente;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_diferente;
+            empilha(operacoes, &op);
          }
       | MENOR
          {
-            // operacoes_t op = op_menor;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_menor;
+            empilha(operacoes, &op);
          }
       | MAIOR
          {
-            // operacoes_t op = op_maior;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_maior;
+            empilha(operacoes, &op);
          }
       | MENOR_IGUAL
          {
-            // operacoes_t op = op_menor_igual;
-            // empilha(operacoes, &op);
+            operacoes_t op = op_menor_igual;
+            empilha(operacoes, &op);
          }
       | MAIOR_IGUAL
          {
-            // operacoes_t op = op_maior_igual;
-            // empilha(operacoes,  &op);
+            operacoes_t op = op_maior_igual;
+            empilha(operacoes,  &op);
          }
 ;
 
 /* REGRA 27 */
-expressao_simples: expressao_simples operacao termo | sinal termo | termo;
+expressao_simples: expressao_simples operacao termo
+                  {
+                     fprintf(stderr, "DEBUG - Regra E = E + T\n");
+                     // E = E + T
+                     TIPOS *t1, *t2;
+                     t1 = desempilha(E);
+                     t2 = desempilha(T);
+
+                     if ((*t1) != (*t2))
+                        imprimeErro("Tipos não correspondem");
+
+                     // #ifdef DEBUG
+                     // fprintf(stderr, "DEBUG - Empilhando t1: %s em E\n", tipoToString((*t1)));
+                     // #endif
+
+                     empilha(E, t1);
+
+                     operacoes_t *op = desempilha(operacoes);
+                     sprintf(comando, "%s", opToString((*op)));
+                     geraCodigo(NULL, comando);
+
+                     free(t1);
+                     free(t2);
+                  }
+               | termo
+                  {
+
+                     // fprintf(stderr, "DEBUG - Regra E = T 27\n");
+                     // E = T
+                     TIPOS *t1;
+                     t1 = desempilha(T);
+
+                     // #ifdef DEBUG
+                     // fprintf(stderr, "DEBUG - Desempilhando t1: %s de T\n", imprimeTipo((*t1)));
+                     // fprintf(stderr, "DEBUG - Empilhando t1: %s em E\n", imprimeTipo((*t1)));
+                     // #endif
+
+                     empilha(E, t1);
+                     // fprintf(stderr, "free");
+                     // free(t1);
+                  }
+               | sinal termo
+;
 
 operacao: sinal | DIV | MULTIPLICACAO | AND | OR;
 
 sinal: SOMA | SUBTRACAO;
 
 /* REGRA 28 */
-termo: fator | termo operacao fator;
+termo: fator
+         {
+            fprintf(stderr, "DEBUG - Regra T = F 28\n");
+            TIPOS *t1;
+            t1 = desempilha(F);
+
+            // #ifdef DEBUG
+            // fprintf(stderr, "DEBUG - Desempilhando t1: %s de F\n", imprimeTipo((*t1)));
+            // fprintf(stderr, "DEBUG - Empilhando t1: %s em T\n", imprimeTipo((*t1)));
+            // #endif
+
+            empilha(T, t1);
+            // free(t1);
+         }
+      | termo operacao fator;
 
 /* REGRA 29 */
-fator: IDENT {}
+fator: IDENT   
+         {
+            fprintf(stderr, "DEBUG - Regra variavel\n");
+            int idx = buscaSimbolo(&TS, token);
+            SIMBOLO *simb;
+            VAR_SIMPLES *VS;
+            PARAM_FORMAL *PF;
+            FUNCAO *func;
+            TIPOS tipo;
+
+            if (idx == -1)
+               imprimeErro("Simbolo inexistente");
+
+            simb = buscaItem(&TS, idx);
+            if (simb->categoria == var_simples){
+                  VS = simb->atributos;
+                  tipo = VS->tipo;
+            }
+            else if(simb->categoria == param_formal){
+               PF = simb->atributos;
+               tipo = PF->tipo;
+            }
+
+            else if(simb->categoria == funcao){
+               func = simb->atributos;
+               tipo = func->tipo;
+            }
+
+            else{
+               sprintf(erro, "Simbolo %s não é variável simples, parâmetro formal ou função", token);
+               imprimeErro(erro);
+            }
+
+            strncpy(ident, token, strlen(token));
+            ident[strlen(token)] = '\0';
+
+            // #ifdef DEBUG
+            // fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
+            // #endif
+
+            empilha(F, &tipo);
+         }
       | NUMERO {
          /* carrega constante */
+         fprintf(stderr, "REGRA NUMERO\n");
          sprintf(comando, "CRCT %s", token);
          geraCodigo(NULL, comando);
 
@@ -290,7 +400,21 @@ fator: IDENT {}
          TIPOS tipo = inteiro;
          empilha(F, &tipo);
       }
-| chama_func | expressao | NOT fator;
+      | ABRE_PARENTESES expressao FECHA_PARENTESES
+         {
+            // vem de um fator, precisamos desempilhar de E e colocar em F
+            fprintf(stderr, "DEBUG - Regra expressão com parênteses\n");
+            TIPOS *t1;
+            t1 = desempilha(E);
+
+            // fprintf(stderr, "empilha aqui\n");
+
+            empilha(F, t1);
+            free(t1);
+         }
+
+| chama_func | NOT fator;
+
 
 ///* REGRA 20 */
 // chama_proc:;
@@ -299,7 +423,67 @@ fator: IDENT {}
 // desvio:;
 
 ///* REGRA 22 */
-// comando_condicional:;
+comando_condicional:
+                     {
+                        empilha(rotulos, prox_rotulo());
+                        empilha(rotulos, prox_rotulo());
+                     }
+                     if_then cond_else
+                     {
+                        free(desempilha(rotulos));
+                        free(desempilha(rotulos));
+                     }
+;
+
+/* REGRA 22 - extra */
+if_then: IF expressao
+         {
+            // fprintf(stderr, "aloooo");
+            // verifica se expressão é booleana
+            TIPOS *t1;
+            t1 = desempilha(E);
+
+            if ((*t1) != booleano){
+               imprimeErro("Expressão não é booleana");
+            }
+
+            free(t1);
+
+            // Gera DSVF com rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            fprintf(stderr, "rotulo %s\n", rotulo);
+            sprintf(comando, "DSVF %s", rotulo);
+            geraCodigo(NULL, comando);
+         }
+         THEN comando_sem_rotulo
+;
+
+/* REGRA 22 - extra */
+cond_else: ELSE
+         {
+            char *rotulo;
+            // Gera DSVS com primeiro rotulo
+            rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            sprintf(comando, "DSVS %s", rotulo);
+            geraCodigo(NULL, comando);
+
+            // Gera NADA com segundo rotulo
+            rotulo = buscaItem(rotulos, rotulos->tamanho);
+            geraCodigo(rotulo, "NADA");
+         }
+            comando_sem_rotulo
+         {
+            // Gera NADA com primeiro rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            geraCodigo(rotulo, "NADA");
+         }
+         | %prec LOWER_THAN_ELSE
+         {
+            // Gera NADA com segundo rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho);
+            geraCodigo(rotulo, "NADA");
+         }
+;
 
 ///* REGRA 23 */
 // comando_repetitivo:;

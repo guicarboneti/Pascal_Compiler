@@ -23,6 +23,7 @@
 
 simbolos simbolo, relacao;
 char token[TAM_TOKEN];
+int rotulos_cont = 0;
 
 FILE *fp = NULL;
 void geraCodigo(char *rot, char *comando)
@@ -57,12 +58,23 @@ void inicializaPilhas(){
     T = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
     F = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
     operacoes = criaPilha(TAM_OPERACOES_PILHA, sizeof(operacoes_t));
+	rotulos = criaPilha(TAM_ROTULOS_PILHA, (ROT_SIZE + 1) * sizeof(char));
 }
 
 
 int checaCategoria(SIMBOLO *simb)
 {
 	return (simb->categoria == var_simples || simb->categoria == param_formal || simb->categoria == procedimento || simb->categoria == funcao);
+}
+
+char *prox_rotulo() {
+	char *rotulo = malloc((ROT_SIZE + 1) * sizeof(char));
+
+    // sprintf(rotulo, "R%.2d\n", rotulos_cont++);
+
+    rotulo[ROT_SIZE + 1] = '\0';
+
+    return rotulo;
 }
 
 char *opToString(operacoes_t operacao)
