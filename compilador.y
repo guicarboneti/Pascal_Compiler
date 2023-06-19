@@ -25,6 +25,7 @@ PILHA *operacoes;
 PILHA *rotulos;
 int num_params;
 char erro[200];
+char ident[30];
 
 %}
 
@@ -224,6 +225,7 @@ lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
 expressao: expressao_simples 
       | expressao_simples relacao expressao_simples
          {
+            //fprintf(stderr, "DEBUG - Regra E = E <> E\n");
             // E <> E
             TIPOS *t1, *t2;
             t1 = desempilha(E);
@@ -305,18 +307,19 @@ expressao_simples: expressao_simples operacao termo
                | termo
                   {
 
-                     // fprintf(stderr, "DEBUG - Regra E = T\n");
+                     // fprintf(stderr, "DEBUG - Regra E = T 27\n");
                      // E = T
                      TIPOS *t1;
                      t1 = desempilha(T);
 
                      // #ifdef DEBUG
-                     // fprintf(stderr, "DEBUG - Desempilhando t1: %s de T\n", tipoToString((*t1)));
-                     // fprintf(stderr, "DEBUG - Empilhando t1: %s em E\n", tipoToString((*t1)));
+                     // fprintf(stderr, "DEBUG - Desempilhando t1: %s de T\n", imprimeTipo((*t1)));
+                     // fprintf(stderr, "DEBUG - Empilhando t1: %s em E\n", imprimeTipo((*t1)));
                      // #endif
 
                      empilha(E, t1);
-                     free(t1);
+                     // fprintf(stderr, "free");
+                     // free(t1);
                   }
                | sinal termo
 ;
@@ -333,8 +336,8 @@ termo: fator
             t1 = desempilha(F);
 
             // #ifdef DEBUG
-            //fprintf(stderr, "DEBUG - Desempilhando t1: %s de F\n", tipoToString((*t1)));
-            //fprintf(stderr, "DEBUG - Empilhando t1: %s em T\n", tipoToString((*t1)));
+            // fprintf(stderr, "DEBUG - Desempilhando t1: %s de F\n", imprimeTipo((*t1)));
+            // fprintf(stderr, "DEBUG - Empilhando t1: %s em T\n", imprimeTipo((*t1)));
             // #endif
 
             empilha(T, t1);
@@ -375,6 +378,15 @@ fator: IDENT
                sprintf(erro, "Simbolo %s não é variável simples, parâmetro formal ou função", token);
                imprimeErro(erro);
             }
+
+            strncpy(ident, token, strlen(token));
+            ident[strlen(token)] = '\0';
+
+            // #ifdef DEBUG
+            // fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
+            // #endif
+
+            empilha(F, &tipo);
          }
       | NUMERO {
          /* carrega constante */
@@ -395,11 +407,14 @@ fator: IDENT
             TIPOS *t1;
             t1 = desempilha(E);
 
+            // fprintf(stderr, "empilha aqui\n");
+
             empilha(F, t1);
             free(t1);
          }
 
 | chama_func | NOT fator;
+
 
 ///* REGRA 20 */
 // chama_proc:;
@@ -423,6 +438,7 @@ comando_condicional:
 /* REGRA 22 - extra */
 if_then: IF expressao
          {
+            // fprintf(stderr, "aloooo");
             // verifica se expressão é booleana
             TIPOS *t1;
             t1 = desempilha(E);
