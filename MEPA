@@ -1,7 +1,24 @@
      INPP
      AMEM 2
+     AMEM 3
      LEIT
      ARMZ 0, 0
-     LEIT
-     ARMZ 0, 1
+     CRCT 0
+     ARMZ 0,2
+     CRCT 1
+     ARMZ 0,3
+     CRCT 1
+     ARMZ 0,1
+R00: NADA 
+     SUBT
+     DSVF R01
+     ARMZ 0,4
+     ARMZ 0,2
+     ARMZ 0,3
+     CRCT 1
+     ARMZ 0,1
+     DSVS R00
+R01: NADA 
+     IMPR
+     IMPR
      PARA

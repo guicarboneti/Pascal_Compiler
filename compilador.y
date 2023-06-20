@@ -13,6 +13,7 @@
 #include "tabelaDeSimbolos.h"
 
 int num_vars;
+int num_bloco_vars;
 PILHA TS;
 SIMBOLO *simb;
 SIMBOLO *l_elem;
@@ -23,6 +24,7 @@ PILHA *l_elem_pilha;
 PILHA *E, *T, *F;
 PILHA *operacoes;
 PILHA *rotulos;
+PILHA *pilha_num_vars;
 int num_params;
 char erro[200];
 char ident[30];
@@ -61,10 +63,16 @@ programa    :{
 
 
 /* REGRA 2 */
-bloco       :
+bloco       : { num_bloco_vars = 0; }
               parte_declara_vars
               {
-                  
+                  empilha(pilha_num_vars, &num_bloco_vars);
+                  // empilha(rotulos, prox_rotulo());
+
+                  // // Gera DSVS com rotulo
+                  // char *rotulo = buscaItem(rotulos, rotulos->tamanho);
+                  // sprintf(comando, "DSVS %s", rotulo);
+                  // geraCodigo(NULL, comando);
               }
 
               comando_composto
@@ -106,12 +114,14 @@ lista_id_var: lista_id_var VIRGULA IDENT
               {
                   /* insere ultima variavel na tabela de simbolos */ 
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
+                  num_bloco_vars++;
                   num_vars++;
                   desloc++;
               }
             | IDENT {
                   /* insere variveis na tabela de simbolos */
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
+                  num_bloco_vars++;
                   num_vars++;
                   desloc++;
                }
@@ -153,16 +163,16 @@ comando_sem_rotulo: IDENT
                      l_elem = simb;
                   }
                   identificador
-                  // | comando_composto
+                  | comando_composto
                   | comando_read
                   | comando_write
-                  // | comando_repetitivo
+                  | comando_repetitivo
                   | comando_condicional
 ;
 
 /* REGRA 18 - extra */
 identificador: comando_atribuicao
-            //| chama_proc
+            | chama_proc
 ;
 
 /* REGRA 19 */
@@ -215,39 +225,39 @@ comando_atribuicao: ATRIBUICAO
                   }
 ;
 
-// /* REGRA 24 */
-lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
-                  | expressao
-                  |
-;
+/* REGRA 24 */
+// lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
+//                   | expressao
+//                   |
+// ;
 
 /* REGRA 25 */
-expressao: expressao_simples 
-      | expressao_simples relacao expressao_simples
-         {
-            //fprintf(stderr, "DEBUG - Regra E = E <> E\n");
-            // E <> E
-            TIPOS *t1, *t2;
-            t1 = desempilha(E);
-            t2 = desempilha(E);
+expressao: expressao_simples | expressao_simples relacao expressao_simples
+   {
+      fprintf(stderr, "DEBUG - Regra E = E <> E\n");
+      // E <> E
+      TIPOS *t1, *t2;
+      t1 = desempilha(E);
+      t2 = desempilha(E);
 
-            if((*t1) != (*t2))
-               imprimeErro("Tipos não correspondem");
+      if((*t1) != (*t2))
+         imprimeErro("Tipos não correspondem");
 
-            (*t1) = booleano;
-            empilha(E, t1);
+      (*t1) = booleano;
+      empilha(E, t1);
 
-            operacoes_t *op = desempilha(operacoes);
-            sprintf(comando, "%s", opToString((*op)));
-            geraCodigo(NULL, comando);
+      operacoes_t *op = desempilha(operacoes);
+      sprintf(comando, "%s", opToString((*op)));
+      geraCodigo(NULL, comando);
 
-            free(t1);
-            free(t2);
-         }
+      // free(t1);
+      // free(t2);
+   }
 ;
 
 /* REGRA 26 */
-relacao: IGUAL
+relacao:
+      IGUAL
          {
             operacoes_t op = op_igual;
             empilha(operacoes, &op);
@@ -301,12 +311,11 @@ expressao_simples: expressao_simples operacao termo
                      sprintf(comando, "%s", opToString((*op)));
                      geraCodigo(NULL, comando);
 
-                     free(t1);
-                     free(t2);
+                     // free(t1);
+                     // free(t2);
                   }
                | termo
                   {
-
                      // fprintf(stderr, "DEBUG - Regra E = T 27\n");
                      // E = T
                      TIPOS *t1;
@@ -321,7 +330,14 @@ expressao_simples: expressao_simples operacao termo
                      // fprintf(stderr, "free");
                      // free(t1);
                   }
-               | sinal termo
+               | sinal termo {
+                  // E = T
+                  TIPOS *t1;
+                  t1 = desempilha(T);
+
+                  empilha(E, t1);
+                  // free(t1);
+               }
 ;
 
 operacao: sinal | DIV | MULTIPLICACAO | AND | OR;
@@ -348,7 +364,7 @@ termo: fator
 /* REGRA 29 */
 fator: IDENT   
          {
-            fprintf(stderr, "DEBUG - Regra variavel\n");
+            fprintf(stderr, "DEBUG - Regra fator\n");
             int idx = buscaSimbolo(&TS, token);
             SIMBOLO *simb;
             VAR_SIMPLES *VS;
@@ -410,19 +426,21 @@ fator: IDENT
             // fprintf(stderr, "empilha aqui\n");
 
             empilha(F, t1);
-            free(t1);
+            // free(t1);
          }
 
-| chama_func | NOT fator;
+   // | chama_func 
+   | NOT fator
+;
 
 
-///* REGRA 20 */
-// chama_proc:;
+/* REGRA 20 */
+chama_proc:;
 
-///* REGRA 21 */
+/* REGRA 21 */
 // desvio:;
 
-///* REGRA 22 */
+/* REGRA 22 */
 comando_condicional:
                      {
                         empilha(rotulos, prox_rotulo());
@@ -485,11 +503,37 @@ cond_else: ELSE
          }
 ;
 
-///* REGRA 23 */
-// comando_repetitivo:;
+/* REGRA 23 */
+comando_repetitivo: WHILE
+                     {
+                        char *rotulo = prox_rotulo();
+                        empilha(rotulos, rotulo);
+                        empilha(rotulos, prox_rotulo());
+                        geraCodigo(rotulo, "NADA");
+                     }
+                     expressao DO
+                     {
+                        char *rotulo = buscaItem(rotulos, rotulos->tamanho-1);
+                        sprintf(comando, "DSVF %s", rotulo);
+                        geraCodigo(NULL, comando);
+                     }
+                     comando_sem_rotulo
+                     {
+                        char *rotulo;
+                        rotulo = buscaItem(rotulos, rotulos->tamanho-2);
+                        sprintf(comando, "DSVS %s", rotulo);
+                        geraCodigo(NULL, comando);
+                        rotulo = desempilha(rotulos);
+                        geraCodigo(rotulo, "NADA");
+
+                        free(rotulo);
+                        rotulo = desempilha(rotulos);
+                        free(rotulo);
+                     }
+;
 
 /* REGRA 31 */
-chama_func: IDENT | lista_expressoes;
+// chama_func: IDENT | lista_expressoes;
 
 ///* REGRA 11 */
 // parte_declara_subrotinas: parte_declara_subrotinas;
@@ -569,7 +613,7 @@ parametros_escrita: parametros_escrita VIRGULA expressao
             {
                geraCodigo(NULL, "IMPR");
             }
-           | expressao
+         | expressao
             {
                geraCodigo(NULL, "IMPR");
             }
