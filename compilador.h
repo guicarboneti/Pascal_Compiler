@@ -102,6 +102,8 @@ extern PILHA *E, *T, *F;
 extern PILHA *operacoes;
 extern PILHA *rotulos;
 extern PILHA *pilha_num_vars;
+extern SIMBOLO *simb_proc;
+extern char comando_buffer[50];
 
 /* -------------------------------------------------------------------
  * prototipos globais
@@ -115,4 +117,7 @@ int checaCategoria(SIMBOLO* simb);
 char* opToString(operacoes_t operacao);
 int yylex();
 void yyerror(const char *s);
-void imprimeOp(void *operacao);
+void comandoCarrega(SIMBOLO *simb);
+void carregaValor(SIMBOLO *simb);
+void carregaEndereco(SIMBOLO *simb);
+void carregaIndireto(SIMBOLO *simb);

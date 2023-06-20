@@ -52,29 +52,30 @@ int imprimeErro(char *erro)
 	exit(-1);
 }
 
-void inicializaPilhas(){
+void inicializaPilhas()
+{
 	l_elem_pilha = criaPilha(TAM_L_ELEM_PILHA, (TAM_L_ELEM_PILHA + 1) * sizeof(char));
 	E = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
-    T = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
-    F = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
-    operacoes = criaPilha(TAM_OPERACOES_PILHA, sizeof(operacoes_t));
+	T = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
+	F = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
+	operacoes = criaPilha(TAM_OPERACOES_PILHA, sizeof(operacoes_t));
 	rotulos = criaPilha(TAM_ROTULOS_PILHA, (ROT_SIZE + 1) * sizeof(char));
 	pilha_num_vars = criaPilha(TAM_PILHA_NUM_VARS, sizeof(int));
 }
-
 
 int checaCategoria(SIMBOLO *simb)
 {
 	return (simb->categoria == var_simples || simb->categoria == param_formal || simb->categoria == procedimento || simb->categoria == funcao);
 }
 
-char *prox_rotulo() {
+char *prox_rotulo()
+{
 	char *rotulo = malloc((ROT_SIZE + 1) * sizeof(char));
 
-    sprintf(rotulo, "R%.2d", rotulos_cont++);
-    rotulo[ROT_SIZE + 1] = '\0';
+	sprintf(rotulo, "R%.2d", rotulos_cont++);
+	rotulo[ROT_SIZE + 1] = '\0';
 
-    return rotulo;
+	return rotulo;
 }
 
 char *opToString(operacoes_t operacao)
@@ -112,7 +113,190 @@ char *opToString(operacoes_t operacao)
 	}
 }
 
-void imprimeOp(void *operacao) {
-	operacoes_t *op = operacao;
-    printf("-----> %d\n", *op);
+void carregaValor(SIMBOLO *simb) {
+    VAR_SIMPLES *VS_aux;
+    PARAM_FORMAL *pf_aux;
+
+    switch (simb->categoria) {
+        case var_simples:
+            VS_aux = simb->atributos;
+            sprintf(comando_buffer, "CRVL %d, %d", simb->nivel_lex, VS_aux->deslocamento);
+            break;
+
+        case param_formal:
+            pf_aux = simb->atributos;
+            sprintf(comando_buffer, "CRVL %d, %d", simb->nivel_lex, pf_aux->deslocamento);
+            break;
+
+        default:
+            imprimeErro("Símbolo inválido para carregamento");
+            break;
+    }
+
+    geraCodigo(NULL, comando_buffer);
+}
+
+void carregaEndereco(SIMBOLO *simb) {
+    VAR_SIMPLES *VS_aux;
+    PARAM_FORMAL *pf_aux;
+
+    switch (simb->categoria) {
+        case var_simples:
+            VS_aux = simb->atributos;
+            sprintf(comando_buffer, "CREN %d, %d", simb->nivel_lex, VS_aux->deslocamento);
+            break;
+
+        case param_formal:
+            pf_aux = simb->atributos;
+            sprintf(comando_buffer, "CREN %d, %d", simb->nivel_lex, pf_aux->deslocamento);
+            break;
+
+        default:
+            imprimeErro("Símbolo inválido para carregamento");
+            break;
+    }
+
+    geraCodigo(NULL, comando_buffer);
+}
+
+void carregaIndireto(SIMBOLO *simb) {
+    PARAM_FORMAL *pf_aux = simb->atributos;
+
+    sprintf(comando_buffer, "CRVI %d, %d", simb->nivel_lex, pf_aux->deslocamento);
+
+    geraCodigo(NULL, comando_buffer);
+}
+
+void comandoCarrega(SIMBOLO *simb)
+{
+	PARAM_FORMAL *pf_aux;
+	PROCEDIMENTO *proc_aux;
+	FUNCAO *func_aux;
+
+	if (simb_proc && simb_proc->categoria == procedimento)
+	{
+		proc_aux = simb_proc->atributos;
+		if (num_params > proc_aux->num_params)
+			imprimeErro("Número inválido de parâmetros");
+		switch (simb->categoria)
+		{
+		case var_simples:
+			if (retornaParametro(proc_aux->parametros[num_params - 1]) ==
+				referencia)
+				carregaEndereco(simb);
+			else
+				carregaValor(simb);
+			break;
+
+		case param_formal:
+			pf_aux = simb->atributos;
+			if (retornaParametro(proc_aux->parametros[num_params - 1]) ==
+				referencia)
+			{
+				if (pf_aux->parametro == referencia)
+				{
+					carregaValor(simb);
+				}
+				else
+				{
+					carregaEndereco(simb);
+				}
+			}
+			else
+			{
+				carregaValor(simb);
+			}
+			break;
+
+		case funcao:
+			func_aux = simb->atributos;
+			geraCodigo(NULL, "AMEM 1");
+			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
+			geraCodigo(NULL, comando_buffer);
+			break;
+
+		default:
+			imprimeErro("Parâmetro inválido");
+			break;
+		}
+	}
+	else if (simb_proc && simb_proc->categoria == funcao)
+	{
+		func_aux = simb_proc->atributos;
+		if (num_params > func_aux->num_params)
+			imprimeErro("Número inválido de parâmetros");
+		switch (simb->categoria)
+		{
+		case var_simples:
+			if (retornaParametro(func_aux->parametros[num_params - 1]) ==
+				referencia)
+				carregaEndereco(simb);
+			else
+				carregaValor(simb);
+			break;
+
+		case param_formal:
+			pf_aux = simb->atributos;
+			if (retornaParametro(func_aux->parametros[num_params - 1]) ==
+				referencia)
+			{
+				if (pf_aux->parametro == referencia)
+				{
+					carregaValor(simb);
+				}
+				else
+				{
+					carregaEndereco(simb);
+				}
+			}
+			else
+			{
+				carregaValor(simb);
+			}
+			break;
+
+		case funcao:
+			geraCodigo(NULL, "AMEM 1");
+			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
+			geraCodigo(NULL, comando_buffer);
+			break;
+
+		default:
+			imprimeErro("Parâmetro inválido");
+			break;
+		}
+	}
+	else
+	{
+		switch (simb->categoria)
+		{
+		case var_simples:
+			carregaValor(simb);
+			break;
+
+		case param_formal:
+			pf_aux = simb->atributos;
+			if (pf_aux->parametro == referencia)
+			{
+				carregaIndireto(simb);
+			}
+			else
+			{
+				carregaValor(simb);
+			}
+
+			break;
+
+		case funcao:
+			func_aux = simb->atributos;
+			geraCodigo(NULL, "AMEM 1");
+			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
+			geraCodigo(NULL, comando_buffer);
+			break;
+
+		default:
+			imprimeErro("Parâmetro inválido");
+			break;
+		}
+	}
 }

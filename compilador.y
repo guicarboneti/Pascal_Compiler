@@ -233,9 +233,8 @@ comando_atribuicao: ATRIBUICAO
 // ;
 
 /* REGRA 25 */
-expressao: expressao_simples | expressao_simples relacao {imprimePilha(operacoes, imprimeOp);} expressao_simples
+expressao: expressao_simples | expressao_simples relacao expressao_simples
    {
-      imprimePilha(operacoes, imprimeOp);
       fprintf(stderr, "DEBUG - Regra E = E <> E\n");
       // E <> E
       TIPOS *t1, *t2;
@@ -318,8 +317,6 @@ expressao_simples: expressao_simples operacao termo
                   }
                | termo
                   {
-                     printf("ttttttttttterrrrrmooooo\n");
-                     imprimePilha(operacoes, imprimeOp);
                      // fprintf(stderr, "DEBUG - Regra E = T 27\n");
                      // E = T
                      TIPOS *t1;
@@ -351,8 +348,6 @@ sinal: SOMA | SUBTRACAO;
 /* REGRA 28 */
 termo: fator
          {
-               printf("faaaaatttoooooorrr\n");
-            imprimePilha(operacoes, imprimeOp);
             fprintf(stderr, "DEBUG - Regra T = F 28\n");
             TIPOS *t1;
             t1 = desempilha(F);
@@ -409,6 +404,7 @@ fator: IDENT
 
             empilha(F, &tipo_aux);
          }
+         variavel
       | NUMERO {
          /* carrega constante */
          fprintf(stderr, "REGRA NUMERO\n");
@@ -535,6 +531,20 @@ comando_repetitivo: WHILE
                         rotulo = desempilha(rotulos);
                         free(rotulo);
                      }
+;
+
+/* REGRA 30 */
+/* Varifica se é varíavel simples ou parâmetro formal */
+variavel:  {
+      int idx = buscaSimbolo(ident);
+      SIMBOLO *simb;
+
+      if (idx == -1)
+         imprimeErro("Simbolo inexistente");
+
+      simb = empilha(TS, idx);
+      comandoCarrega(simb);
+   }
 ;
 
 /* REGRA 31 */
