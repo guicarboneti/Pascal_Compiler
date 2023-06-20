@@ -115,3 +115,4 @@ int checaCategoria(SIMBOLO* simb);
 char* opToString(operacoes_t operacao);
 int yylex();
 void yyerror(const char *s);
+void imprimeOp(void *operacao);

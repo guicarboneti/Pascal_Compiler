@@ -111,3 +111,8 @@ char *opToString(operacoes_t operacao)
 		return "inválido";
 	}
 }
+
+void imprimeOp(void *operacao) {
+	operacoes_t *op = operacao;
+    printf("-----> %d\n", *op);
+}

@@ -28,6 +28,7 @@ PILHA *pilha_num_vars;
 int num_params;
 char erro[200];
 char ident[30];
+TIPOS tipo_aux;
 
 %}
 
@@ -232,8 +233,9 @@ comando_atribuicao: ATRIBUICAO
 // ;
 
 /* REGRA 25 */
-expressao: expressao_simples | expressao_simples relacao expressao_simples
+expressao: expressao_simples | expressao_simples relacao {imprimePilha(operacoes, imprimeOp);} expressao_simples
    {
+      imprimePilha(operacoes, imprimeOp);
       fprintf(stderr, "DEBUG - Regra E = E <> E\n");
       // E <> E
       TIPOS *t1, *t2;
@@ -316,6 +318,8 @@ expressao_simples: expressao_simples operacao termo
                   }
                | termo
                   {
+                     printf("ttttttttttterrrrrmooooo\n");
+                     imprimePilha(operacoes, imprimeOp);
                      // fprintf(stderr, "DEBUG - Regra E = T 27\n");
                      // E = T
                      TIPOS *t1;
@@ -347,6 +351,8 @@ sinal: SOMA | SUBTRACAO;
 /* REGRA 28 */
 termo: fator
          {
+               printf("faaaaatttoooooorrr\n");
+            imprimePilha(operacoes, imprimeOp);
             fprintf(stderr, "DEBUG - Regra T = F 28\n");
             TIPOS *t1;
             t1 = desempilha(F);
@@ -370,24 +376,23 @@ fator: IDENT
             VAR_SIMPLES *VS;
             PARAM_FORMAL *PF;
             FUNCAO *func;
-            TIPOS tipo;
 
             if (idx == -1)
                imprimeErro("Simbolo inexistente");
 
             simb = buscaItem(&TS, idx);
             if (simb->categoria == var_simples){
-                  VS = simb->atributos;
-                  tipo = VS->tipo;
+               VS = simb->atributos;
+               tipo_aux = VS->tipo;
             }
             else if(simb->categoria == param_formal){
                PF = simb->atributos;
-               tipo = PF->tipo;
+               tipo_aux = PF->tipo;
             }
 
             else if(simb->categoria == funcao){
                func = simb->atributos;
-               tipo = func->tipo;
+               tipo_aux = func->tipo;
             }
 
             else{
@@ -402,7 +407,7 @@ fator: IDENT
             // fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
             // #endif
 
-            empilha(F, &tipo);
+            empilha(F, &tipo_aux);
          }
       | NUMERO {
          /* carrega constante */
