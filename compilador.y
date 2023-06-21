@@ -536,13 +536,13 @@ comando_repetitivo: WHILE
 /* REGRA 30 */
 /* Varifica se é varíavel simples ou parâmetro formal */
 variavel:  {
-      int idx = buscaSimbolo(ident);
+      int idx = buscaSimbolo(&TS, ident);
       SIMBOLO *simb;
 
       if (idx == -1)
          imprimeErro("Simbolo inexistente");
 
-      simb = empilha(TS, idx);
+      simb = buscaItem(&TS, idx);
       comandoCarrega(simb);
    }
 ;

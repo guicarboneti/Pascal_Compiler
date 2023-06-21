@@ -24,6 +24,8 @@
 simbolos simbolo, relacao;
 char token[TAM_TOKEN];
 int rotulos_cont = 0;
+SIMBOLO *simb_proc;
+char comando_buffer[50];
 
 FILE *fp = NULL;
 void geraCodigo(char *rot, char *comando)
@@ -114,189 +116,133 @@ char *opToString(operacoes_t operacao)
 }
 
 void carregaValor(SIMBOLO *simb) {
-    VAR_SIMPLES *VS_aux;
+    VAR_SIMPLES *vs_aux;
     PARAM_FORMAL *pf_aux;
 
-    switch (simb->categoria) {
-        case var_simples:
-            VS_aux = simb->atributos;
-            sprintf(comando_buffer, "CRVL %d, %d", simb->nivel_lex, VS_aux->deslocamento);
-            break;
-
-        case param_formal:
-            pf_aux = simb->atributos;
-            sprintf(comando_buffer, "CRVL %d, %d", simb->nivel_lex, pf_aux->deslocamento);
-            break;
-
-        default:
-            imprimeErro("Símbolo inválido para carregamento");
-            break;
+    if (simb->categoria == var_simples) {
+		vs_aux = simb->atributos;
+		sprintf(comando_buffer, "CRVL %d,%d", simb->nivel_lex, vs_aux->deslocamento);
     }
+	else if (simb->categoria == param_formal) {
+		pf_aux = simb->atributos;
+		sprintf(comando_buffer, "CRVL %d,%d", simb->nivel_lex, pf_aux->deslocamento);
+	}
+	else
+		imprimeErro("Símbolo inválido para carregamento");
 
     geraCodigo(NULL, comando_buffer);
 }
 
 void carregaEndereco(SIMBOLO *simb) {
-    VAR_SIMPLES *VS_aux;
+    VAR_SIMPLES *vs_aux;
     PARAM_FORMAL *pf_aux;
 
-    switch (simb->categoria) {
-        case var_simples:
-            VS_aux = simb->atributos;
-            sprintf(comando_buffer, "CREN %d, %d", simb->nivel_lex, VS_aux->deslocamento);
-            break;
-
-        case param_formal:
-            pf_aux = simb->atributos;
-            sprintf(comando_buffer, "CREN %d, %d", simb->nivel_lex, pf_aux->deslocamento);
-            break;
-
-        default:
-            imprimeErro("Símbolo inválido para carregamento");
-            break;
-    }
+    if (simb->categoria == var_simples) {
+		vs_aux = simb->atributos;
+		sprintf(comando_buffer, "CREN %d,%d", simb->nivel_lex, vs_aux->deslocamento);
+	}
+	else if (simb->categoria == param_formal) {
+		pf_aux = simb->atributos;
+		sprintf(comando_buffer, "CREN %d,%d", simb->nivel_lex, pf_aux->deslocamento);
+	}
+	else
+		imprimeErro("Símbolo inválido para carregamento");
 
     geraCodigo(NULL, comando_buffer);
 }
 
 void carregaIndireto(SIMBOLO *simb) {
     PARAM_FORMAL *pf_aux = simb->atributos;
-
-    sprintf(comando_buffer, "CRVI %d, %d", simb->nivel_lex, pf_aux->deslocamento);
+    sprintf(comando_buffer, "CRVI %d,%d", simb->nivel_lex, pf_aux->deslocamento);
 
     geraCodigo(NULL, comando_buffer);
 }
 
-void comandoCarrega(SIMBOLO *simb)
-{
+void comandoCarrega(SIMBOLO *simb) {
 	PARAM_FORMAL *pf_aux;
 	PROCEDIMENTO *proc_aux;
 	FUNCAO *func_aux;
 
-	if (simb_proc && simb_proc->categoria == procedimento)
-	{
+	if (simb_proc && simb_proc->categoria == procedimento) {
 		proc_aux = simb_proc->atributos;
+		
 		if (num_params > proc_aux->num_params)
 			imprimeErro("Número inválido de parâmetros");
-		switch (simb->categoria)
-		{
-		case var_simples:
+		
+		if (simb->categoria == var_simples) {
 			if (retornaParametro(proc_aux->parametros[num_params - 1]) ==
 				referencia)
 				carregaEndereco(simb);
 			else
 				carregaValor(simb);
-			break;
-
-		case param_formal:
+		}
+		else if (simb->categoria == param_formal) {
 			pf_aux = simb->atributos;
-			if (retornaParametro(proc_aux->parametros[num_params - 1]) ==
-				referencia)
-			{
+			if (retornaParametro(proc_aux->parametros[num_params - 1]) == referencia)
 				if (pf_aux->parametro == referencia)
-				{
 					carregaValor(simb);
-				}
 				else
-				{
 					carregaEndereco(simb);
-				}
-			}
 			else
-			{
 				carregaValor(simb);
-			}
-			break;
-
-		case funcao:
+		}
+		else if (simb->categoria == funcao) {
 			func_aux = simb->atributos;
 			geraCodigo(NULL, "AMEM 1");
 			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
 			geraCodigo(NULL, comando_buffer);
-			break;
-
-		default:
-			imprimeErro("Parâmetro inválido");
-			break;
 		}
+		else
+			imprimeErro("Parâmetro inválido");
 	}
-	else if (simb_proc && simb_proc->categoria == funcao)
-	{
+	else if (simb_proc && simb_proc->categoria == funcao) {
 		func_aux = simb_proc->atributos;
+
 		if (num_params > func_aux->num_params)
 			imprimeErro("Número inválido de parâmetros");
-		switch (simb->categoria)
-		{
-		case var_simples:
+
+		if (simb->categoria == var_simples) {
 			if (retornaParametro(func_aux->parametros[num_params - 1]) ==
 				referencia)
 				carregaEndereco(simb);
 			else
 				carregaValor(simb);
-			break;
-
-		case param_formal:
+		}
+		else if (simb->categoria ==  param_formal) {
 			pf_aux = simb->atributos;
-			if (retornaParametro(func_aux->parametros[num_params - 1]) ==
-				referencia)
-			{
+			if (retornaParametro(func_aux->parametros[num_params - 1]) == referencia)
 				if (pf_aux->parametro == referencia)
-				{
 					carregaValor(simb);
-				}
 				else
-				{
 					carregaEndereco(simb);
-				}
-			}
 			else
-			{
 				carregaValor(simb);
-			}
-			break;
-
-		case funcao:
+		}
+		else if (simb->categoria == funcao) {
 			geraCodigo(NULL, "AMEM 1");
 			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
 			geraCodigo(NULL, comando_buffer);
-			break;
-
-		default:
-			imprimeErro("Parâmetro inválido");
-			break;
 		}
+		else
+			imprimeErro("Parâmetro inválido");
 	}
-	else
-	{
-		switch (simb->categoria)
-		{
-		case var_simples:
+	else {
+		if (simb->categoria == var_simples)
 			carregaValor(simb);
-			break;
-
-		case param_formal:
+		else if (simb->categoria == param_formal) {
 			pf_aux = simb->atributos;
 			if (pf_aux->parametro == referencia)
-			{
 				carregaIndireto(simb);
-			}
 			else
-			{
 				carregaValor(simb);
-			}
-
-			break;
-
-		case funcao:
+		}
+		else if (simb->categoria == funcao) {
 			func_aux = simb->atributos;
 			geraCodigo(NULL, "AMEM 1");
 			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
 			geraCodigo(NULL, comando_buffer);
-			break;
-
-		default:
-			imprimeErro("Parâmetro inválido");
-			break;
 		}
+		else
+			imprimeErro("Parâmetro inválido");
 	}
 }
