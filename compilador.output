@@ -136,10 +136,10 @@ Gramática
 
    74 variavel: %empty
 
-   75 comando_read: READ ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES
+   75 comando_read: READ ABRE_PARENTESES parametros_leitura FECHA_PARENTESES
 
-   76 paramentros_leitura: paramentros_leitura VIRGULA IDENT
-   77                    | IDENT
+   76 parametros_leitura: parametros_leitura VIRGULA IDENT
+   77                   | IDENT
 
    78 comando_write: WRITE ABRE_PARENTESES parametros_escrita FECHA_PARENTESES
 
@@ -287,7 +287,7 @@ variavel (90)
     à esquerda: 74, à direita: 59
 comando_read (91)
     à esquerda: 75, à direita: 30
-paramentros_leitura (92)
+parametros_leitura (92)
     à esquerda: 76 77, à direita: 75 76
 comando_write (93)
     à esquerda: 78, à direita: 31
@@ -600,7 +600,7 @@ Estado 33
 
 Estado 34
 
-   75 comando_read: READ . ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES
+   75 comando_read: READ . ABRE_PARENTESES parametros_leitura FECHA_PARENTESES
 
     ABRE_PARENTESES  deslocar, e ir ao estado 52
 
@@ -764,11 +764,11 @@ Estado 51
 
 Estado 52
 
-   75 comando_read: READ ABRE_PARENTESES . paramentros_leitura FECHA_PARENTESES
+   75 comando_read: READ ABRE_PARENTESES . parametros_leitura FECHA_PARENTESES
 
     IDENT  deslocar, e ir ao estado 75
 
-    paramentros_leitura  ir ao estado 76
+    parametros_leitura  ir ao estado 76
 
 
 Estado 53
@@ -1034,15 +1034,15 @@ Estado 74
 
 Estado 75
 
-   77 paramentros_leitura: IDENT .
+   77 parametros_leitura: IDENT .
 
-    $padrão  reduzir usando a regra 77 (paramentros_leitura)
+    $padrão  reduzir usando a regra 77 (parametros_leitura)
 
 
 Estado 76
 
-   75 comando_read: READ ABRE_PARENTESES paramentros_leitura . FECHA_PARENTESES
-   76 paramentros_leitura: paramentros_leitura . VIRGULA IDENT
+   75 comando_read: READ ABRE_PARENTESES parametros_leitura . FECHA_PARENTESES
+   76 parametros_leitura: parametros_leitura . VIRGULA IDENT
 
     FECHA_PARENTESES  deslocar, e ir ao estado 104
     VIRGULA           deslocar, e ir ao estado 105
@@ -1298,14 +1298,14 @@ Estado 103
 
 Estado 104
 
-   75 comando_read: READ ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES .
+   75 comando_read: READ ABRE_PARENTESES parametros_leitura FECHA_PARENTESES .
 
     $padrão  reduzir usando a regra 75 (comando_read)
 
 
 Estado 105
 
-   76 paramentros_leitura: paramentros_leitura VIRGULA . IDENT
+   76 parametros_leitura: parametros_leitura VIRGULA . IDENT
 
     IDENT  deslocar, e ir ao estado 117
 
@@ -1456,9 +1456,9 @@ Estado 116
 
 Estado 117
 
-   76 paramentros_leitura: paramentros_leitura VIRGULA IDENT .
+   76 parametros_leitura: parametros_leitura VIRGULA IDENT .
 
-    $padrão  reduzir usando a regra 76 (paramentros_leitura)
+    $padrão  reduzir usando a regra 76 (parametros_leitura)
 
 
 Estado 118

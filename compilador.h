@@ -121,3 +121,5 @@ void comandoCarrega(SIMBOLO *simb);
 void carregaValor(SIMBOLO *simb);
 void carregaEndereco(SIMBOLO *simb);
 void carregaIndireto(SIMBOLO *simb);
+
+void imprimeOp(void *operacao);

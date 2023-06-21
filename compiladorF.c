@@ -246,3 +246,8 @@ void comandoCarrega(SIMBOLO *simb) {
 			imprimeErro("Parâmetro inválido");
 	}
 }
+
+void imprimeOp(void *operacao) {
+	operacoes_t *op = operacao;
+    printf("-----> %d\n", *op);
+}
