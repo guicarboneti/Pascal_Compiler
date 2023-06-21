@@ -414,8 +414,8 @@ fator: IDENT
          // if (proc) checaParam();
 
          /* empilha o tipo inteiro */
-         TIPOS tipo = inteiro;
-         empilha(F, &tipo);
+         tipo_aux = inteiro;
+         empilha(F, &tipo_aux);
       }
       | ABRE_PARENTESES expressao FECHA_PARENTESES
          {
@@ -466,7 +466,7 @@ if_then: IF expressao
                imprimeErro("Expressão não é booleana");
             }
 
-            free(t1);
+            // free(t1);
 
             // Gera DSVF com rotulo
             char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
@@ -482,24 +482,24 @@ cond_else: ELSE
          {
             char *rotulo;
             // Gera DSVS com primeiro rotulo
-            rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            rotulo = buscaItem(rotulos, rotulos->tamanho-2);
             sprintf(comando, "DSVS %s", rotulo);
             geraCodigo(NULL, comando);
 
             // Gera NADA com segundo rotulo
-            rotulo = buscaItem(rotulos, rotulos->tamanho);
+            rotulo = buscaItem(rotulos, rotulos->tamanho-1);
             geraCodigo(rotulo, "NADA");
          }
             comando_sem_rotulo
          {
             // Gera NADA com primeiro rotulo
-            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho-2);
             geraCodigo(rotulo, "NADA");
          }
          | %prec LOWER_THAN_ELSE
          {
             // Gera NADA com segundo rotulo
-            char *rotulo = buscaItem(rotulos, rotulos->tamanho);
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho-1);
             geraCodigo(rotulo, "NADA");
          }
 ;
@@ -554,11 +554,11 @@ variavel:  {
 // parte_declara_subrotinas: parte_declara_subrotinas;
 
 /* REGRA LEITURA */
-comando_read: READ ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES
+comando_read: READ ABRE_PARENTESES parametros_leitura FECHA_PARENTESES
 ;
 
 /* parâmetros do read */
-paramentros_leitura: paramentros_leitura VIRGULA IDENT
+parametros_leitura: parametros_leitura VIRGULA IDENT
             {
                SIMBOLO *item;
                VAR_SIMPLES *VS;
@@ -574,14 +574,14 @@ paramentros_leitura: paramentros_leitura VIRGULA IDENT
 
                if (item->categoria == var_simples) {
                      VS = item->atributos;
-                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+                     sprintf(comando, "ARMZ %d,%d", item->nivel_lex, VS->deslocamento);
                }
                else if (item->categoria == param_formal){
                      PF = item->atributos;
                      if (PF->parametro == valor)
-                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMZ %d,%d", item->nivel_lex, PF->deslocamento);
                      else if (PF->parametro == referencia)
-                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMI %d,%d", item->nivel_lex, PF->deslocamento);
                }
                else
                   imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
