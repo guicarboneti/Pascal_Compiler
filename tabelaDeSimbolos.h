@@ -80,6 +80,7 @@ char *imprimeCategoria(CATEGORIAS categoria);
 
 PARAMETRO retornaParametro(SIMBOLO *simb);
 
-/* a completar aqui */
+// Deleta simbolos do nivel lexico especificado
+void deletaPorNivelLexico(PILHA *TS, int nivel_lexico);
 
 #endif

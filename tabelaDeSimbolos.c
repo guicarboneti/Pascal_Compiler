@@ -160,5 +160,24 @@ void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars) {
             PF->tipo = tipo;
         }
     }
+}
 
+void deletaPorNivelLexico(PILHA *TS, int nivel_lexico) {
+    if (pilhaVazia(TS)) return;
+    SIMBOLO *item;
+    int i;
+
+    for (i = TS->tamanho-1; i >= 0; i--) {
+        item = buscaItem(TS, i);
+        if (!item) {
+            imprimeErro("ERRO - deletaPorNivelLexico() - stack smashed");
+            exit(-1);
+        }
+
+        if (item->nivel_lex < nivel_lexico)
+            return;
+        
+        TS->tamanho--;
+        free(item);
+    }
 }
