@@ -19,6 +19,7 @@
 #define TAM_OPERACOES_PILHA 50
 #define TAM_L_ELEM_PILHA 50
 #define TAM_ROTULOS_PILHA 50
+#define TAM_PILHA_NUM_VARS 50
 #define ROT_SIZE 3
 
 typedef enum simbolos {
@@ -100,7 +101,9 @@ extern PILHA *l_elem_pilha;
 extern PILHA *E, *T, *F;
 extern PILHA *operacoes;
 extern PILHA *rotulos;
-
+extern PILHA *pilha_num_vars;
+extern SIMBOLO *simb_proc;
+extern char comando_buffer[50];
 
 /* -------------------------------------------------------------------
  * prototipos globais
@@ -114,3 +117,7 @@ int checaCategoria(SIMBOLO* simb);
 char* opToString(operacoes_t operacao);
 int yylex();
 void yyerror(const char *s);
+void comandoCarrega(SIMBOLO *simb);
+void carregaValor(SIMBOLO *simb);
+void carregaEndereco(SIMBOLO *simb);
+void carregaIndireto(SIMBOLO *simb);
