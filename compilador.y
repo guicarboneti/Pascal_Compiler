@@ -64,21 +64,31 @@ programa    :{
 
 
 /* REGRA 2 */
-bloco       :  { num_bloco_vars = 0; }
-              parte_declara_vars
-              {
-                  empilha(pilha_num_vars, &num_bloco_vars);
+bloco:  { num_bloco_vars = 0; }
+         parte_declara_vars {
+            empilha(pilha_num_vars, &num_bloco_vars);
 
-                  empilha(rotulos, prox_rotulo());
+            // empilha(rotulos, prox_rotulo());
 
-                  // Gera DSVS com rotulo
-                  char *rotulo = buscaItem(rotulos, rotulos->tamanho -1);
-                  sprintf(comando, "DSVS %s", rotulo);
-                  geraCodigo(NULL, comando);
-              }
+            // // Gera DSVS com rotulo
+            // char *rotulo = buscaItem(rotulos, rotulos->tamanho -1);
+            // sprintf(comando, "DSVS %s", rotulo);
+            // geraCodigo(NULL, comando);
+         }
+         comando_composto {
+            int *temp = desempilha(pilha_num_vars);
+            num_bloco_vars = (*temp);
 
-              comando_composto
-              ;
+            imprimeTS(&TS, TS_TAM);    // ---------- comentar dps
+            deletaPorNivelLexico(&TS, nivel_lexico+1);
+
+            if (num_bloco_vars > 0) {
+               elimina(&TS, num_bloco_vars);
+               sprintf(comando, "DMEM %d", num_bloco_vars);
+               geraCodigo(NULL, comando);
+            }
+         }
+;
 
 
 
@@ -342,9 +352,34 @@ expressao_simples: expressao_simples operacao termo
                }
 ;
 
-operacao: sinal | DIV | MULTIPLICACAO | AND | OR;
+operacao: sinal 
+   | DIV {
+      operacoes_t op = op_div;
+      empilha(operacoes, &op);
+   }
+   | MULTIPLICACAO {
+      operacoes_t op = op_mult;
+      empilha(operacoes, &op);
+   }
+   | AND {
+      operacoes_t op = op_and;
+      empilha(operacoes, &op);
+   }
+   | OR {
+      operacoes_t op = op_or;
+      empilha(operacoes, &op);
+   }
+;
 
-sinal: SOMA | SUBTRACAO;
+sinal: SOMA {
+         operacoes_t op = op_soma;
+         empilha(operacoes, &op);
+      }
+      | SUBTRACAO {
+         operacoes_t op = op_subt;
+         empilha(operacoes, &op);
+      }
+;
 
 /* REGRA 28 */
 termo: fator
@@ -361,10 +396,25 @@ termo: fator
             empilha(T, t1);
             // free(t1);
          }
-      // | termo operacao fator 
-            {
+      | termo operacao fator 
+         {
+            // T = T + F
+            TIPOS *t1, *t2;
+            t1 = desempilha(T);
+            t2 = desempilha(F);
 
-            }
+            if ((*t1) != (*t2))
+               imprimeErro("Tipos não correspondem");
+
+            empilha(T, t1);
+
+            operacoes_t *op = desempilha(operacoes);
+            sprintf(comando, "%s", opToString((*op)));
+            geraCodigo(NULL, comando);
+
+            // free(t1);
+            // free(t2);
+         }
 ;
 
 /* REGRA 29 */
@@ -450,12 +500,12 @@ chama_proc:;
 comando_condicional:
                      {
                         empilha(rotulos, prox_rotulo());
-                        empilha(rotulos, prox_rotulo());
+                        // empilha(rotulos, prox_rotulo());
                      }
                      if_then cond_else
                      {
                         free(desempilha(rotulos));
-                        free(desempilha(rotulos));
+                        // free(desempilha(rotulos));
                      }
 ;
 
@@ -608,14 +658,14 @@ parametros_leitura: parametros_leitura VIRGULA IDENT
 
                if (item->categoria == var_simples) {
                      VS = item->atributos;
-                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+                     sprintf(comando, "ARMZ %d,%d", item->nivel_lex, VS->deslocamento);
                }
                else if (item->categoria == param_formal){
                      PF = item->atributos;
                      if (PF->parametro == valor)
-                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMZ %d,%d", item->nivel_lex, PF->deslocamento);
                      else if (PF->parametro == referencia)
-                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMI %d,%d", item->nivel_lex, PF->deslocamento);
                }
                else
                   imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
@@ -665,8 +715,6 @@ int main (int argc, char** argv) {
 
    yyin=fp;
    yyparse();
-
-   imprimeTS(&TS, TS_TAM);
 
    return 0;
 }
