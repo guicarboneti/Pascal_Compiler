@@ -41,7 +41,7 @@ void geraCodigo(char *rot, char *comando)
 	}
 	else
 	{
-		fprintf(fp, "%s: %s \n", rot, comando);
+		fprintf(fp, "%s: %s\n", rot, comando);
 		fflush(fp);
 	}
 }
@@ -59,6 +59,7 @@ void inicializaPilhas(){
     F = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
     operacoes = criaPilha(TAM_OPERACOES_PILHA, sizeof(operacoes_t));
 	rotulos = criaPilha(TAM_ROTULOS_PILHA, (ROT_SIZE + 1) * sizeof(char));
+	pilha_num_vars = criaPilha(TAM_PILHA_NUM_VARS, sizeof(int));
 }
 
 
@@ -70,7 +71,7 @@ int checaCategoria(SIMBOLO *simb)
 char *prox_rotulo() {
 	char *rotulo = malloc((ROT_SIZE + 1) * sizeof(char));
 
-    // sprintf(rotulo, "R%.2d\n", rotulos_cont++);
+    sprintf(rotulo, "R%.2d\n", rotulos_cont++);
 
     rotulo[ROT_SIZE + 1] = '\0';
 

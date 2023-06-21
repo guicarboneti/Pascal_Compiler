@@ -13,6 +13,7 @@
 #include "tabelaDeSimbolos.h"
 
 int num_vars;
+int num_bloco_vars;
 PILHA TS;
 SIMBOLO *simb;
 SIMBOLO *l_elem;
@@ -23,6 +24,7 @@ PILHA *l_elem_pilha;
 PILHA *E, *T, *F;
 PILHA *operacoes;
 PILHA *rotulos;
+PILHA *pilha_num_vars;
 int num_params;
 char erro[200];
 char ident[30];
@@ -61,10 +63,17 @@ programa    :{
 
 
 /* REGRA 2 */
-bloco       :
+bloco       :  { num_bloco_vars = 0; }
               parte_declara_vars
               {
-                  
+                  empilha(pilha_num_vars, &num_bloco_vars);
+
+                  empilha(rotulos, prox_rotulo());
+
+                  // Gera DSVS com rotulo
+                  char *rotulo = buscaItem(rotulos, rotulos->tamanho -1);
+                  sprintf(comando, "DSVS %s", rotulo);
+                  geraCodigo(NULL, comando);
               }
 
               comando_composto
@@ -241,8 +250,8 @@ expressao: expressao_simples
             sprintf(comando, "%s", opToString((*op)));
             geraCodigo(NULL, comando);
 
-            free(t1);
-            free(t2);
+            // free(t1);
+            // free(t2);
          }
 ;
 
@@ -301,8 +310,8 @@ expressao_simples: expressao_simples operacao termo
                      sprintf(comando, "%s", opToString((*op)));
                      geraCodigo(NULL, comando);
 
-                     free(t1);
-                     free(t2);
+                     // free(t1);
+                     // free(t2);
                   }
                | termo
                   {
@@ -321,7 +330,10 @@ expressao_simples: expressao_simples operacao termo
                      // fprintf(stderr, "free");
                      // free(t1);
                   }
-               | sinal termo
+            // | sinal termo 
+               {
+
+               }
 ;
 
 operacao: sinal | DIV | MULTIPLICACAO | AND | OR;
@@ -343,7 +355,11 @@ termo: fator
             empilha(T, t1);
             // free(t1);
          }
-      | termo operacao fator;
+      // | termo operacao fator 
+            {
+
+            }
+;
 
 /* REGRA 29 */
 fator: IDENT   
@@ -378,12 +394,12 @@ fator: IDENT
                sprintf(erro, "Simbolo %s não é variável simples, parâmetro formal ou função", token);
                imprimeErro(erro);
             }
-
+            
             strncpy(ident, token, strlen(token));
             ident[strlen(token)] = '\0';
 
             // #ifdef DEBUG
-            // fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
+            fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
             // #endif
 
             empilha(F, &tipo);
@@ -410,10 +426,11 @@ fator: IDENT
             // fprintf(stderr, "empilha aqui\n");
 
             empilha(F, t1);
-            free(t1);
+            // free(t1);
          }
 
-| chama_func | NOT fator;
+// | chama_func 
+| NOT fator;
 
 
 ///* REGRA 20 */
@@ -438,7 +455,6 @@ comando_condicional:
 /* REGRA 22 - extra */
 if_then: IF expressao
          {
-            // fprintf(stderr, "aloooo");
             // verifica se expressão é booleana
             TIPOS *t1;
             t1 = desempilha(E);
@@ -447,7 +463,7 @@ if_then: IF expressao
                imprimeErro("Expressão não é booleana");
             }
 
-            free(t1);
+            // free(t1);
 
             // Gera DSVF com rotulo
             char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
@@ -463,24 +479,24 @@ cond_else: ELSE
          {
             char *rotulo;
             // Gera DSVS com primeiro rotulo
-            rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
-            sprintf(comando, "DSVS %s", rotulo);
+            rotulo = buscaItem(rotulos, rotulos->tamanho - 2);
+            sprintf(comando, "DSVF %s", rotulo);
             geraCodigo(NULL, comando);
 
             // Gera NADA com segundo rotulo
-            rotulo = buscaItem(rotulos, rotulos->tamanho);
+            rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
             geraCodigo(rotulo, "NADA");
          }
             comando_sem_rotulo
          {
             // Gera NADA com primeiro rotulo
-            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 2);
             geraCodigo(rotulo, "NADA");
          }
          | %prec LOWER_THAN_ELSE
          {
             // Gera NADA com segundo rotulo
-            char *rotulo = buscaItem(rotulos, rotulos->tamanho);
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
             geraCodigo(rotulo, "NADA");
          }
 ;
