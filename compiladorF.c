@@ -43,7 +43,7 @@ void geraCodigo(char *rot, char *comando)
 	}
 	else
 	{
-		fprintf(fp, "%s: %s \n", rot, comando);
+		fprintf(fp, "%s: %s\n", rot, comando);
 		fflush(fp);
 	}
 }

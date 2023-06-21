@@ -64,16 +64,17 @@ programa    :{
 
 
 /* REGRA 2 */
-bloco       : { num_bloco_vars = 0; }
+bloco       :  { num_bloco_vars = 0; }
               parte_declara_vars
               {
                   empilha(pilha_num_vars, &num_bloco_vars);
-                  // empilha(rotulos, prox_rotulo());
 
-                  // // Gera DSVS com rotulo
-                  // char *rotulo = buscaItem(rotulos, rotulos->tamanho);
-                  // sprintf(comando, "DSVS %s", rotulo);
-                  // geraCodigo(NULL, comando);
+                  empilha(rotulos, prox_rotulo());
+
+                  // Gera DSVS com rotulo
+                  char *rotulo = buscaItem(rotulos, rotulos->tamanho -1);
+                  sprintf(comando, "DSVS %s", rotulo);
+                  geraCodigo(NULL, comando);
               }
 
               comando_composto
@@ -360,7 +361,11 @@ termo: fator
             empilha(T, t1);
             // free(t1);
          }
-      | termo operacao fator;
+      // | termo operacao fator 
+            {
+
+            }
+;
 
 /* REGRA 29 */
 fator: IDENT   
@@ -394,12 +399,12 @@ fator: IDENT
                sprintf(erro, "Simbolo %s não é variável simples, parâmetro formal ou função", token);
                imprimeErro(erro);
             }
-
+            
             strncpy(ident, token, strlen(token));
             ident[strlen(token)] = '\0';
 
             // #ifdef DEBUG
-            // fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
+            fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
             // #endif
 
             empilha(F, &tipo_aux);
@@ -457,7 +462,6 @@ comando_condicional:
 /* REGRA 22 - extra */
 if_then: IF expressao
          {
-            // fprintf(stderr, "aloooo");
             // verifica se expressão é booleana
             TIPOS *t1;
             t1 = desempilha(E);

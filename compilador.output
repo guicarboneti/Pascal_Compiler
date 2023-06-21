@@ -80,31 +80,27 @@ Gramática
 
    37 comando_atribuicao: ATRIBUICAO $@8 expressao
 
-   38 expressao: expressao_simples
-   39          | expressao_simples relacao expressao_simples
+   37 relacao: IGUAL
+   38        | DIFERENTE
+   39        | MENOR
+   40        | MAIOR
+   41        | MENOR_IGUAL
+   42        | MAIOR_IGUAL
 
-   40 relacao: IGUAL
-   41        | DIFERENTE
-   42        | MENOR
-   43        | MAIOR
-   44        | MENOR_IGUAL
-   45        | MAIOR_IGUAL
+   43 expressao_simples: expressao_simples operacao termo
 
-   46 expressao_simples: expressao_simples operacao termo
-   47                  | termo
-   48                  | sinal termo
+   44 $@10: ε
 
-   49 operacao: sinal
-   50         | DIV
-   51         | MULTIPLICACAO
-   52         | AND
-   53         | OR
+   45 expressao_simples: termo $@10
 
-   54 sinal: SOMA
-   55      | SUBTRACAO
+   46 operacao: sinal
+   47         | DIV
+   48         | MULTIPLICACAO
+   49         | AND
+   50         | OR
 
-   56 termo: fator
-   57      | termo operacao fator
+   51 sinal: SOMA
+   52      | SUBTRACAO
 
    58 $@9: %empty
 
