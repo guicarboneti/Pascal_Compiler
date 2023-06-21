@@ -28,6 +28,7 @@ PILHA *pilha_num_vars;
 int num_params;
 char erro[200];
 char ident[30];
+TIPOS tipo_aux;
 
 %}
 
@@ -115,12 +116,14 @@ lista_id_var: lista_id_var VIRGULA IDENT
               {
                   /* insere ultima variavel na tabela de simbolos */ 
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
+                  num_bloco_vars++;
                   num_vars++;
                   desloc++;
               }
             | IDENT {
                   /* insere variveis na tabela de simbolos */
                   insere(&TS, token, var_simples, criaVarSimples(tipo_indefinido, desloc), nivel_lexico);
+                  num_bloco_vars++;
                   num_vars++;
                   desloc++;
                }
@@ -162,16 +165,16 @@ comando_sem_rotulo: IDENT
                      l_elem = simb;
                   }
                   identificador
-                  // | comando_composto
+                  | comando_composto
                   | comando_read
                   | comando_write
-                  // | comando_repetitivo
+                  | comando_repetitivo
                   | comando_condicional
 ;
 
 /* REGRA 18 - extra */
 identificador: comando_atribuicao
-            //| chama_proc
+            | chama_proc
 ;
 
 /* REGRA 19 */
@@ -224,39 +227,39 @@ comando_atribuicao: ATRIBUICAO
                   }
 ;
 
-// /* REGRA 24 */
-lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
-                  | expressao
-                  |
-;
+/* REGRA 24 */
+// lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
+//                   | expressao
+//                   |
+// ;
 
 /* REGRA 25 */
-expressao: expressao_simples 
-      | expressao_simples relacao expressao_simples
-         {
-            //fprintf(stderr, "DEBUG - Regra E = E <> E\n");
-            // E <> E
-            TIPOS *t1, *t2;
-            t1 = desempilha(E);
-            t2 = desempilha(E);
+expressao: expressao_simples | expressao_simples relacao expressao_simples
+   {
+      fprintf(stderr, "DEBUG - Regra E = E <> E\n");
+      // E <> E
+      TIPOS *t1, *t2;
+      t1 = desempilha(E);
+      t2 = desempilha(E);
 
-            if((*t1) != (*t2))
-               imprimeErro("Tipos não correspondem");
+      if((*t1) != (*t2))
+         imprimeErro("Tipos não correspondem");
 
-            (*t1) = booleano;
-            empilha(E, t1);
+      (*t1) = booleano;
+      empilha(E, t1);
 
-            operacoes_t *op = desempilha(operacoes);
-            sprintf(comando, "%s", opToString((*op)));
-            geraCodigo(NULL, comando);
+      operacoes_t *op = desempilha(operacoes);
+      sprintf(comando, "%s", opToString((*op)));
+      geraCodigo(NULL, comando);
 
-            // free(t1);
-            // free(t2);
-         }
+      // free(t1);
+      // free(t2);
+   }
 ;
 
 /* REGRA 26 */
-relacao: IGUAL
+relacao:
+      IGUAL
          {
             operacoes_t op = op_igual;
             empilha(operacoes, &op);
@@ -315,7 +318,6 @@ expressao_simples: expressao_simples operacao termo
                   }
                | termo
                   {
-
                      // fprintf(stderr, "DEBUG - Regra E = T 27\n");
                      // E = T
                      TIPOS *t1;
@@ -330,9 +332,13 @@ expressao_simples: expressao_simples operacao termo
                      // fprintf(stderr, "free");
                      // free(t1);
                   }
-            // | sinal termo 
-               {
+               | sinal termo {
+                  // E = T
+                  TIPOS *t1;
+                  t1 = desempilha(T);
 
+                  empilha(E, t1);
+                  // free(t1);
                }
 ;
 
@@ -364,30 +370,29 @@ termo: fator
 /* REGRA 29 */
 fator: IDENT   
          {
-            fprintf(stderr, "DEBUG - Regra variavel\n");
+            fprintf(stderr, "DEBUG - Regra fator\n");
             int idx = buscaSimbolo(&TS, token);
             SIMBOLO *simb;
             VAR_SIMPLES *VS;
             PARAM_FORMAL *PF;
             FUNCAO *func;
-            TIPOS tipo;
 
             if (idx == -1)
                imprimeErro("Simbolo inexistente");
 
             simb = buscaItem(&TS, idx);
             if (simb->categoria == var_simples){
-                  VS = simb->atributos;
-                  tipo = VS->tipo;
+               VS = simb->atributos;
+               tipo_aux = VS->tipo;
             }
             else if(simb->categoria == param_formal){
                PF = simb->atributos;
-               tipo = PF->tipo;
+               tipo_aux = PF->tipo;
             }
 
             else if(simb->categoria == funcao){
                func = simb->atributos;
-               tipo = func->tipo;
+               tipo_aux = func->tipo;
             }
 
             else{
@@ -402,8 +407,9 @@ fator: IDENT
             fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
             // #endif
 
-            empilha(F, &tipo);
+            empilha(F, &tipo_aux);
          }
+         variavel
       | NUMERO {
          /* carrega constante */
          fprintf(stderr, "REGRA NUMERO\n");
@@ -413,8 +419,8 @@ fator: IDENT
          // if (proc) checaParam();
 
          /* empilha o tipo inteiro */
-         TIPOS tipo = inteiro;
-         empilha(F, &tipo);
+         tipo_aux = inteiro;
+         empilha(F, &tipo_aux);
       }
       | ABRE_PARENTESES expressao FECHA_PARENTESES
          {
@@ -429,17 +435,18 @@ fator: IDENT
             // free(t1);
          }
 
-// | chama_func 
-| NOT fator;
+   // | chama_func 
+   | NOT fator
+;
 
 
-///* REGRA 20 */
-// chama_proc:;
+/* REGRA 20 */
+chama_proc:;
 
-///* REGRA 21 */
+/* REGRA 21 */
 // desvio:;
 
-///* REGRA 22 */
+/* REGRA 22 */
 comando_condicional:
                      {
                         empilha(rotulos, prox_rotulo());
@@ -479,43 +486,83 @@ cond_else: ELSE
          {
             char *rotulo;
             // Gera DSVS com primeiro rotulo
-            rotulo = buscaItem(rotulos, rotulos->tamanho - 2);
-            sprintf(comando, "DSVF %s", rotulo);
+            rotulo = buscaItem(rotulos, rotulos->tamanho-2);
+            sprintf(comando, "DSVS %s", rotulo);
             geraCodigo(NULL, comando);
 
             // Gera NADA com segundo rotulo
-            rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            rotulo = buscaItem(rotulos, rotulos->tamanho-1);
             geraCodigo(rotulo, "NADA");
          }
             comando_sem_rotulo
          {
             // Gera NADA com primeiro rotulo
-            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 2);
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho-2);
             geraCodigo(rotulo, "NADA");
          }
          | %prec LOWER_THAN_ELSE
          {
             // Gera NADA com segundo rotulo
-            char *rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho-1);
             geraCodigo(rotulo, "NADA");
          }
 ;
 
-///* REGRA 23 */
-// comando_repetitivo:;
+/* REGRA 23 */
+comando_repetitivo: WHILE
+                     {
+                        char *rotulo = prox_rotulo();
+                        empilha(rotulos, rotulo);
+                        empilha(rotulos, prox_rotulo());
+                        geraCodigo(rotulo, "NADA");
+                     }
+                     expressao DO
+                     {
+                        char *rotulo = buscaItem(rotulos, rotulos->tamanho-1);
+                        sprintf(comando, "DSVF %s", rotulo);
+                        geraCodigo(NULL, comando);
+                     }
+                     comando_sem_rotulo
+                     {
+                        char *rotulo;
+                        rotulo = buscaItem(rotulos, rotulos->tamanho-2);
+                        sprintf(comando, "DSVS %s", rotulo);
+                        geraCodigo(NULL, comando);
+                        rotulo = desempilha(rotulos);
+                        geraCodigo(rotulo, "NADA");
+
+                        free(rotulo);
+                        rotulo = desempilha(rotulos);
+                        free(rotulo);
+                     }
+;
+
+/* REGRA 30 */
+/* Varifica se é varíavel simples ou parâmetro formal */
+variavel:  {
+      int idx = buscaSimbolo(&TS, ident);
+      SIMBOLO *simb;
+
+      if (idx == -1)
+         imprimeErro("Simbolo inexistente");
+
+      simb = buscaItem(&TS, idx);
+      comandoCarrega(simb);
+   }
+;
 
 /* REGRA 31 */
-chama_func: IDENT | lista_expressoes;
+// chama_func: IDENT | lista_expressoes;
 
 ///* REGRA 11 */
 // parte_declara_subrotinas: parte_declara_subrotinas;
 
 /* REGRA LEITURA */
-comando_read: READ ABRE_PARENTESES paramentros_leitura FECHA_PARENTESES
+comando_read: READ ABRE_PARENTESES parametros_leitura FECHA_PARENTESES
 ;
 
 /* parâmetros do read */
-paramentros_leitura: paramentros_leitura VIRGULA IDENT
+parametros_leitura: parametros_leitura VIRGULA IDENT
             {
                SIMBOLO *item;
                VAR_SIMPLES *VS;
@@ -531,14 +578,14 @@ paramentros_leitura: paramentros_leitura VIRGULA IDENT
 
                if (item->categoria == var_simples) {
                      VS = item->atributos;
-                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
+                     sprintf(comando, "ARMZ %d,%d", item->nivel_lex, VS->deslocamento);
                }
                else if (item->categoria == param_formal){
                      PF = item->atributos;
                      if (PF->parametro == valor)
-                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMZ %d,%d", item->nivel_lex, PF->deslocamento);
                      else if (PF->parametro == referencia)
-                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMI %d,%d", item->nivel_lex, PF->deslocamento);
                }
                else
                   imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
@@ -585,7 +632,7 @@ parametros_escrita: parametros_escrita VIRGULA expressao
             {
                geraCodigo(NULL, "IMPR");
             }
-           | expressao
+         | expressao
             {
                geraCodigo(NULL, "IMPR");
             }

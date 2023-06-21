@@ -79,6 +79,12 @@ char *imprimeCategoria(CATEGORIAS categoria) {
     return aux;
 }
 
+PARAMETRO retornaParametro(SIMBOLO *simb) {
+    PARAM_FORMAL *pf = simb->atributos;
+
+    return pf->parametro;
+}
+
 void printVarSimples(VAR_SIMPLES *atributos) {
     printf("%10d %12s\n", atributos->deslocamento, imprimeTipo(atributos->tipo));
 }

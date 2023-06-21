@@ -78,6 +78,8 @@ char *imprimeTipo(TIPOS tipo);
 
 char *imprimeCategoria(CATEGORIAS categoria);
 
+PARAMETRO retornaParametro(SIMBOLO *simb);
+
 /* a completar aqui */
 
 #endif
