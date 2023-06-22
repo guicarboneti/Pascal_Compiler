@@ -41,7 +41,7 @@ SIMBOLO *proc = NULL;
 %token PROCEDURE FUNCTION GOTO IF THEN ELSE
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
-%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE FORWARD
+%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
 
 /* Para assegurar o funcionamento do IF THEN ELSE
    Precedências são crescentes, logo "lower_than_else" < "else" */
@@ -87,7 +87,7 @@ bloco:  { num_bloco_vars = 0; }
             int *temp = desempilha(pilha_num_vars);
             num_bloco_vars = (*temp);
 
-            imprimeTS(&TS, TS_TAM);    // ---------- comentar dps
+            // imprimeTS(&TS, TS_TAM);    // ---------- comentar dps
             deletaPorNivelLexico(&TS, nivel_lexico+1);
 
             if (num_bloco_vars > 0) {
@@ -154,7 +154,7 @@ lista_idents: lista_idents VIRGULA IDENT
 /* REGRA 11 */
 parte_declara_subrotinas:
          | parte_declara_subrotinas declara_proc
-         // | parte_declara_subrotinas declara_func
+         | parte_declara_subrotinas declara_func
 ;
 
 /* REGRA 12 */
@@ -173,12 +173,12 @@ declara_proc: PROCEDURE IDENT
                }
 
             }
-            param_formais
+            parametros_formais
             PONTO_E_VIRGULA declara_proc_extra
 ;
 
 /* REGRA 12 - extra */
-declara_proc_extra: FORWARD PONTO_E_VIRGULA { nivel_lexico--; }
+declara_proc_extra: PONTO_E_VIRGULA { nivel_lexico--; }
             | {
                char *rotulo;
 
@@ -207,9 +207,56 @@ declara_proc_extra: FORWARD PONTO_E_VIRGULA { nivel_lexico--; }
             }
 ;
 
+/* REGRA 13 */
+declara_func: FUNCTION IDENT
+            {
+               char *rotulo;
+               nivel_lexico++;
+
+               // Adiciona função à TS se ainda não existe
+               if (buscaSimbolo(&TS, token) == -1) {
+                  empilha(rotulos, prox_rotulo());
+                  rotulo = buscaItem(rotulos, rotulos->tamanho-1);
+                  insere(&TS, token, funcao, criaAtrFuncao(rotulo), nivel_lexico);
+               }
+            }
+            parametros_formais DOIS_PONTOS tipo {
+               if (simbolo == simb_integer)
+                     atualizaTipoFuncao(retUltDaCategoria(&TS, funcao), inteiro);
+               else if (simbolo == simb_boolean)
+                     atualizaTipoFuncao(retUltDaCategoria(&TS, funcao), booleano);
+            }
+            PONTO_E_VIRGULA parametros_funcao
+;
+
+/* REGRA 13 - extra */
+parametros_funcao: PONTO_E_VIRGULA { nivel_lexico--; }
+            | {
+               char *rotulo;
+
+               rotulo = buscaItem(rotulos, rotulos->tamanho-1);
+               sprintf(comando, "ENPR %d", nivel_lexico);
+               geraCodigo(rotulo, comando);
+
+            } bloco PONTO_E_VIRGULA {
+               char *rotulo;
+
+               SIMBOLO *simb = retUltDaCategoria(&TS, funcao);
+               FUNCAO *aux_func = simb->atributos;
+
+               sprintf(comando, "RTPR %d, %d", nivel_lexico, aux_func->num_params);
+               geraCodigo(NULL, comando);
+               elimina(&TS, aux_func->num_params);
+
+               nivel_lexico--;
+               rotulo = desempilha(rotulos);
+               free(rotulo);
+            }
+;
+
 /* REGRA 14 */
-param_formais:
-             | { desloc = 0; } ABRE_PARENTESES secao_param_formais FECHA_PARENTESES
+parametros_formais:
+             | { desloc = 0; } ABRE_PARENTESES secao_parametros_formais FECHA_PARENTESES
              {
                // atualiza deslocamento e adiciona parametros ao procedimento na tabela de simbolos
                atualizaDesloc(&TS, desloc);
@@ -217,8 +264,8 @@ param_formais:
 ;
 
 /* REGRA 15 */
-secao_param_formais:
-                   | PONTO_E_VIRGULA secao_param_formais
+secao_parametros_formais:
+                   | PONTO_E_VIRGULA secao_parametros_formais
                    | {num_vars = 0;} VAR lista_id_param DOIS_PONTOS tipo
                    {
                      switch (simbolo) {
@@ -234,7 +281,7 @@ secao_param_formais:
 
                      atualizaTipoParametro(&TS, referencia, num_vars);
                    }
-                   secao_param_formais
+                   secao_parametros_formais
                    | {num_vars = 0;} lista_id_param DOIS_PONTOS tipo
                    {
                      switch (simbolo) {
@@ -248,7 +295,7 @@ secao_param_formais:
                            break;
                      }
                    }
-                   secao_param_formais
+                   secao_parametros_formais
 ;
 
 /* REGRA 15 - extra */
@@ -337,7 +384,7 @@ comando_atribuicao: ATRIBUICAO
                            VS = l_elem->atributos;
                            if(VS->tipo != (*t1))
                               imprimeErro("Tipos não correspondem");
-                           sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, VS->deslocamento);
+                           sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, VS->deslocamento);
                      }
                      else if (l_elem->categoria == param_formal){
                            PF = l_elem->atributos;
@@ -345,9 +392,9 @@ comando_atribuicao: ATRIBUICAO
                               imprimeErro("Tipos não correspondem");
                            
                            if (PF->parametro == valor)
-                              sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, PF->deslocamento);
+                              sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, PF->deslocamento);
                            else if (PF->parametro == referencia)
-                              sprintf(comando, "ARMI %d,%d", l_elem->nivel_lex, PF->deslocamento);
+                              sprintf(comando, "ARMI %d, %d", l_elem->nivel_lex, PF->deslocamento);
                            else
                               imprimeErro("Tipo de passsagem de parâmetro inválido");
                      }
@@ -355,7 +402,7 @@ comando_atribuicao: ATRIBUICAO
                         FUN = l_elem->atributos;
                         if(FUN->tipo != (*t1))
                            imprimeErro("Tipos não correspondem");
-                        sprintf(comando, "ARMZ %d,%d", l_elem->nivel_lex, FUN->deslocamento);
+                        sprintf(comando, "ARMZ %d, %d", l_elem->nivel_lex, FUN->deslocamento);
                      }
                      else
                         imprimeErro("Categoria inválida");
@@ -367,7 +414,7 @@ comando_atribuicao: ATRIBUICAO
 
 /* REGRA 20 */
 chama_proc:
-          {
+         {
             if (l_elem->categoria != procedimento) {
                sprintf(erro, "Simbolo %s não procedimento", l_elem->id);
                imprimeErro(erro);
@@ -379,9 +426,9 @@ chama_proc:
             geraCodigo(NULL, comando);
 
             l_elem = NULL;
-          }
-          | ABRE_PARENTESES { proc = l_elem; num_params = 1; } lista_expressoes FECHA_PARENTESES
-          {
+         }
+         | ABRE_PARENTESES { proc = l_elem; num_params = 1; } lista_expressoes FECHA_PARENTESES
+         {
             if (l_elem->categoria != procedimento) {
                sprintf(erro, "Simbolo %s não procedimento", l_elem->id);
                imprimeErro(erro);
@@ -406,7 +453,7 @@ chama_proc:
 
             l_elem = NULL;
             proc = NULL;
-          }
+         }
 ;
 
 
@@ -419,7 +466,7 @@ lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
 /* REGRA 25 */
 expressao: expressao_simples | expressao_simples relacao expressao_simples
    {
-      fprintf(stderr, "DEBUG - Regra E = E <> E\n");
+      // fprintf(stderr, "DEBUG - Regra E = E <> E\n");
       // E <> E
       TIPOS *t1, *t2;
       t1 = desempilha(E);
@@ -477,7 +524,7 @@ relacao:
 /* REGRA 27 */
 expressao_simples: expressao_simples operacao termo
                   {
-                     fprintf(stderr, "DEBUG - Regra E = E + T\n");
+                     // fprintf(stderr, "DEBUG - Regra E = E + T\n");
                      // E = E + T
                      TIPOS *t1, *t2;
                      t1 = desempilha(E);
@@ -485,10 +532,6 @@ expressao_simples: expressao_simples operacao termo
 
                      if ((*t1) != (*t2))
                         imprimeErro("Tipos não correspondem");
-
-                     // #ifdef DEBUG
-                     // fprintf(stderr, "DEBUG - Empilhando t1: %s em E\n", tipoToString((*t1)));
-                     // #endif
 
                      empilha(E, t1);
 
@@ -506,13 +549,7 @@ expressao_simples: expressao_simples operacao termo
                      TIPOS *t1;
                      t1 = desempilha(T);
 
-                     // #ifdef DEBUG
-                     // fprintf(stderr, "DEBUG - Desempilhando t1: %s de T\n", imprimeTipo((*t1)));
-                     // fprintf(stderr, "DEBUG - Empilhando t1: %s em E\n", imprimeTipo((*t1)));
-                     // #endif
-
                      empilha(E, t1);
-                     // fprintf(stderr, "free");
                      // free(t1);
                   }
                | sinal { if (proc) checaParam(); } termo
@@ -565,14 +602,9 @@ sinal: SOMA {
 /* REGRA 28 */
 termo: fator
          {
-            fprintf(stderr, "DEBUG - Regra T = F 28\n");
+            // fprintf(stderr, "DEBUG - Regra T = F 28\n");
             TIPOS *t1;
             t1 = desempilha(F);
-
-            // #ifdef DEBUG
-            // fprintf(stderr, "DEBUG - Desempilhando t1: %s de F\n", imprimeTipo((*t1)));
-            // fprintf(stderr, "DEBUG - Empilhando t1: %s em T\n", imprimeTipo((*t1)));
-            // #endif
 
             empilha(T, t1);
             // free(t1);
@@ -601,7 +633,7 @@ termo: fator
 /* REGRA 29 */
 fator: IDENT   
          {
-            fprintf(stderr, "DEBUG - Regra fator\n");
+            // fprintf(stderr, "DEBUG - Regra fator\n");
             int idx = buscaSimbolo(&TS, token);
             SIMBOLO *simb;
             VAR_SIMPLES *VS;
@@ -634,16 +666,13 @@ fator: IDENT
             strncpy(ident, token, strlen(token));
             ident[strlen(token)] = '\0';
 
-            // #ifdef DEBUG
-            fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
-            // #endif
+            // fprintf(stderr, "DEBUG - Empilhando tipo de %s em F\n", simb->id);
 
             empilha(F, &tipo_aux);
          }
-         variavel
+         chamada_funcao
       | NUMERO {
          /* carrega constante */
-         fprintf(stderr, "REGRA NUMERO\n");
          sprintf(comando, "CRCT %s", token);
          geraCodigo(NULL, comando);
 
@@ -656,7 +685,7 @@ fator: IDENT
       | ABRE_PARENTESES expressao FECHA_PARENTESES
          {
             // vem de um fator, precisamos desempilhar de E e colocar em F
-            fprintf(stderr, "DEBUG - Regra expressão com parênteses\n");
+            // fprintf(stderr, "DEBUG - Regra expressão com parênteses\n");
             TIPOS *t1;
             t1 = desempilha(E);
 
@@ -765,6 +794,8 @@ comando_repetitivo: WHILE
                      }
 ;
 
+chamada_funcao: variavel | chama_func;
+
 /* REGRA 30 */
 /* Varifica se é varíavel simples ou parâmetro formal */
 variavel:  {
@@ -780,7 +811,43 @@ variavel:  {
 ;
 
 /* REGRA 31 */
-// chama_func: IDENT | lista_expressoes;
+chama_func: ABRE_PARENTESES
+            {
+               int idx = buscaSimbolo(&TS, ident);
+
+               if (idx == -1)
+                  imprimeErro("Simbolo inexistente");
+
+               geraCodigo(NULL, "AMEM 1");
+
+               proc = buscaItem(&TS, idx);
+               num_params = 1;
+            }
+            lista_expressoes FECHA_PARENTESES
+            {
+               int i;
+               if (proc->categoria != funcao) {
+                  imprimeErro("Simbolo não é função");
+               }
+
+               FUNCAO *aux_func = proc->atributos;
+
+               TIPOS *tipo;
+               PARAM_FORMAL *aux_pf;
+               for (i=0; i<aux_func->num_params; i++) {
+                  tipo = desempilha(E);
+                  aux_pf = aux_func->parametros[i]->atributos;
+                  if ((*tipo) != aux_pf->tipo)
+                     imprimeErro("Tipo incompatível");
+               }
+
+               sprintf(comando, "CHPR %s, %d", aux_func->rotulo, nivel_lexico);
+               geraCodigo(NULL, comando);
+
+               l_elem = NULL;
+               proc = NULL;
+            }
+;
 
 /* REGRA LEITURA */
 comando_read: READ ABRE_PARENTESES parametros_leitura FECHA_PARENTESES
@@ -803,14 +870,14 @@ parametros_leitura: parametros_leitura VIRGULA IDENT
 
                if (item->categoria == var_simples) {
                      VS = item->atributos;
-                     sprintf(comando, "ARMZ %d,%d", item->nivel_lex, VS->deslocamento);
+                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
                }
                else if (item->categoria == param_formal){
                      PF = item->atributos;
                      if (PF->parametro == valor)
-                        sprintf(comando, "ARMZ %d,%d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
                      else if (PF->parametro == referencia)
-                        sprintf(comando, "ARMI %d,%d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
                }
                else
                   imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");
@@ -833,14 +900,14 @@ parametros_leitura: parametros_leitura VIRGULA IDENT
 
                if (item->categoria == var_simples) {
                      VS = item->atributos;
-                     sprintf(comando, "ARMZ %d,%d", item->nivel_lex, VS->deslocamento);
+                     sprintf(comando, "ARMZ %d, %d", item->nivel_lex, VS->deslocamento);
                }
                else if (item->categoria == param_formal){
                      PF = item->atributos;
                      if (PF->parametro == valor)
-                        sprintf(comando, "ARMZ %d,%d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMZ %d, %d", item->nivel_lex, PF->deslocamento);
                      else if (PF->parametro == referencia)
-                        sprintf(comando, "ARMI %d,%d", item->nivel_lex, PF->deslocamento);
+                        sprintf(comando, "ARMI %d, %d", item->nivel_lex, PF->deslocamento);
                }
                else
                   imprimeErro("[ERRO] read() - Item lido nao eh variavel simples nem parametro formal");

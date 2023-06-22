@@ -68,9 +68,15 @@ PARAM_FORMAL *criaParamFormal(TIPOS tipo, int deslocamento, CATEGORIAS passagem)
 
 PROCEDIMENTO *criaAtrProcedimento(char *rotulo);
 
+FUNCAO *criaAtrFuncao(char *rotulo);
+
 void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars);
 
 void atualizaTipoParametro(PILHA *TS, PARAMETRO passagem, int n);
+
+void atualizaTipoFuncao(SIMBOLO *simb, TIPOS tipo);
+
+SIMBOLO *retUltDaCategoria(PILHA *TS, CATEGORIAS categoria);
 
 void printVarSimples(VAR_SIMPLES *atributos);
 
