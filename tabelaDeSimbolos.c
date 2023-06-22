@@ -89,11 +89,20 @@ void printVarSimples(VAR_SIMPLES *atributos) {
     printf("%10d %12s\n", atributos->deslocamento, imprimeTipo(atributos->tipo));
 }
 
-void printParamFormal(PARAM_FORMAL *atributos) {
-    return;
+void printProcedimento(PROCEDIMENTO *atrib) {
+    PARAM_FORMAL *atribParam;
+
+    fprintf(stdout, " / Rotulo: %s / Params: %d {", atrib->rotulo, atrib->num_params);
+
+    for (int i = 0; i < atrib->num_params; i++) {
+        atribParam = atrib->parametros[i]->atributos;
+        fprintf(stdout, " %s[%s,%s]", atrib->parametros[i]->id, imprimeTipo(atribParam->tipo), imprimeTipoParametro(atribParam->tipo));
+    }
+
+    fprintf(stdout, " }");
 }
 
-void printProcedimento(PROCEDIMENTO *atributos) {
+void printParamFormal(PARAM_FORMAL *atributos) {
     return;
 }
 
@@ -123,6 +132,19 @@ void imprimeSimbolo(void* item) {
     }
 }
 
+char *imprimeTipoParametro(PARAMETRO passagem) {
+    switch (passagem) {
+        case referencia:
+            return "Referência";
+        case valor:
+            return "Valor";
+        case param_indefinido:
+            return "Indefinido";
+        default:
+            return "inválido";
+    }
+}
+
 void imprimeTS(PILHA *TS, int tam) {
     printf("\n                  TABELA DE SIMBOLOS\n----------------------------------------------------------\n");
     printf(" id  |     categoria      | nivel_lex | Desloc |   Tipo\n----------------------------------------------------------\n");
@@ -134,6 +156,28 @@ VAR_SIMPLES *criaVarSimples(TIPOS tipo, int deslocamento) {
 
     atributos->tipo = tipo;
     atributos->deslocamento = deslocamento;
+
+    return atributos;
+}
+
+PARAM_FORMAL *criaParamFormal(TIPOS tipo, int deslocamento, CATEGORIAS passagem) {
+    PARAM_FORMAL *atributos = malloc(sizeof(PARAM_FORMAL));
+
+    atributos->tipo = tipo;
+    atributos->deslocamento = deslocamento;
+    atributos->parametro = passagem;
+
+    return atributos;
+}
+
+PROCEDIMENTO *criaAtrProcedimento(char *rotulo) {
+    PROCEDIMENTO *atributos = malloc(sizeof(PROCEDIMENTO));
+
+    atributos->rotulo = malloc(strlen(rotulo) * sizeof(char));
+    strncpy(atributos->rotulo, rotulo, strlen(rotulo));
+    atributos->rotulo[strlen(rotulo)] = '\0';
+    atributos->num_params = 0;
+    atributos->parametros = NULL;
 
     return atributos;
 }
@@ -162,6 +206,26 @@ void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars) {
     }
 }
 
+void atualizaTipoParametro(PILHA *TS, PARAMETRO passagem, int n) {
+    PARAM_FORMAL *atribParam;
+    SIMBOLO *item;
+
+    if ( !n ) return;
+
+    if ((int) (TS->tamanho - 1 - n) < -1){
+        fprintf(stderr, "ERRO - atualizaTipo() - stack smashed\n");
+        exit(-1);
+    }
+
+    for (int i = TS->tamanho - 1; i > (int) TS->tamanho - 1 - (n); i--) {
+        item = buscaItem(TS, i);
+        
+        atribParam = (PARAM_FORMAL *) (item->atributos);
+        atribParam->parametro = passagem;
+    }
+}
+
+
 void deletaPorNivelLexico(PILHA *TS, int nivel_lexico) {
     if (pilhaVazia(TS)) return;
     SIMBOLO *item;
@@ -181,3 +245,78 @@ void deletaPorNivelLexico(PILHA *TS, int nivel_lexico) {
         free(item);
     }
 }
+
+
+SIMBOLO *retornaUltimo(PILHA *TS, CATEGORIAS categoria) {
+    SIMBOLO *item;
+
+    for (int i = TS->tamanho - 1; i > -1; i--) {
+        item = buscaItem(TS, i);
+        
+        if (item->categoria == categoria)
+            return item;
+    }
+
+    return NULL;
+}
+
+void atualizaDesloc(PILHA *TS, int n) {
+    PARAM_FORMAL *PF;
+    PROCEDIMENTO *proc;
+    FUNCAO *func;
+
+    SIMBOLO *item, *simb;
+    SIMBOLO **vetor_param;
+    int cont = -4;
+    int simbIndex = TS->tamanho - 1 - n;
+
+    if ( !n ) return;
+
+    if ((int) (TS->tamanho - 1 - n) < 0){
+        fprintf(stderr, "ERRO - atualizaDesloc() - stack smashed\n");
+        exit(-1);
+    }
+
+    simb = buscaItem(TS, simbIndex);
+    if (simb->categoria == procedimento) {
+        proc = simb->atributos;
+        proc->num_params = n;
+        proc->parametros = (SIMBOLO **)
+            malloc(proc->num_params * sizeof(SIMBOLO *));
+        vetor_param = proc->parametros;
+    } else if (simb->categoria == funcao) {
+        func = simb->atributos;
+        func->num_params = n;
+        func->deslocamento = cont - n;
+        func->parametros = (SIMBOLO **)
+            malloc(func->num_params * sizeof(SIMBOLO *));
+        vetor_param = func->parametros;
+    }
+
+    for (int i = TS->tamanho - 1; i > (int) TS->tamanho - 1-(n); i--) {
+        item = buscaItem(TS, i);
+
+        PF = item->atributos;
+        PF->deslocamento = cont--;
+
+        vetor_param[i - simbIndex - 1] = (SIMBOLO *) copiaParamFormal(item);
+    }
+}
+
+static SIMBOLO *copiaParamFormal(SIMBOLO *param) {
+    PARAM_FORMAL *atrib = param->atributos;
+    SIMBOLO *copy = malloc(sizeof(SIMBOLO));
+    PARAM_FORMAL *atribCopy = criaParamFormal(
+        atrib->tipo, atrib->deslocamento, atrib->parametro);
+    
+    char *ident = malloc(sizeof(char) * strlen(param->id));
+    strncpy(ident, param->id, strlen(param->id));
+
+    copy->id = ident;
+    copy->categoria = param->categoria;
+    copy->nivel_lex = param->nivel_lex;
+    copy->atributos = atribCopy;
+
+    return copy;
+}
+

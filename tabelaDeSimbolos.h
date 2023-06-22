@@ -64,9 +64,17 @@ void imprimeTS(PILHA *TS, int tam);
 
 VAR_SIMPLES *criaVarSimples(TIPOS tipo, int deslocamento);
 
+PARAM_FORMAL *criaParamFormal(TIPOS tipo, int deslocamento, CATEGORIAS passagem);
+
+PROCEDIMENTO *criaAtrProcedimento(char *rotulo);
+
 void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars);
 
+void atualizaTipoParametro(PILHA *TS, PARAMETRO passagem, int n);
+
 void printVarSimples(VAR_SIMPLES *atributos);
+
+void atualizaDesloc(PILHA *TS, int n);
 
 void printParamFormal(PARAM_FORMAL *atributos);
 
@@ -78,7 +86,13 @@ char *imprimeTipo(TIPOS tipo);
 
 char *imprimeCategoria(CATEGORIAS categoria);
 
+char *imprimeTipoParametro(PARAMETRO passagem);
+
 PARAMETRO retornaParametro(SIMBOLO *simb);
+
+SIMBOLO *retornaUltimo(PILHA *TS, CATEGORIAS categoria);
+
+static SIMBOLO *copiaParamFormal(SIMBOLO *param);
 
 // Deleta simbolos do nivel lexico especificado
 void deletaPorNivelLexico(PILHA *TS, int nivel_lexico);

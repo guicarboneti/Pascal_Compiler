@@ -29,6 +29,7 @@ int num_params;
 char erro[200];
 char ident[30];
 TIPOS tipo_aux;
+SIMBOLO *proc = NULL;
 
 %}
 
@@ -40,7 +41,7 @@ TIPOS tipo_aux;
 %token PROCEDURE FUNCTION GOTO IF THEN ELSE
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
-%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
+%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE FORWARD
 
 /* Para assegurar o funcionamento do IF THEN ELSE
    Precedências são crescentes, logo "lower_than_else" < "else" */
@@ -68,12 +69,19 @@ bloco:  { num_bloco_vars = 0; }
          parte_declara_vars {
             empilha(pilha_num_vars, &num_bloco_vars);
 
-            // empilha(rotulos, prox_rotulo());
+            empilha(rotulos, prox_rotulo());
 
-            // // Gera DSVS com rotulo
-            // char *rotulo = buscaItem(rotulos, rotulos->tamanho -1);
-            // sprintf(comando, "DSVS %s", rotulo);
-            // geraCodigo(NULL, comando);
+            // Gera DSVS com rotulo
+            char *rotulo = buscaItem(rotulos, rotulos->tamanho -1);
+            sprintf(comando, "DSVS %s", rotulo);
+            geraCodigo(NULL, comando);
+         }
+         parte_declara_subrotinas
+         {
+            // Gera NADA com rotulo
+            char *rotulo = desempilha(rotulos);
+            geraCodigo(rotulo, "NADA");
+            free(rotulo);
          }
          comando_composto {
             int *temp = desempilha(pilha_num_vars);
@@ -93,8 +101,8 @@ bloco:  { num_bloco_vars = 0; }
 
 
 /* REGRA 8 */
-parte_declara_vars:  { desloc = 0; } VAR declara_vars | declara_vars
-            |
+parte_declara_vars:   
+            | { desloc = 0; } VAR declara_vars
 ;
 
 declara_vars: declara_vars declara_var
@@ -141,6 +149,126 @@ lista_id_var: lista_id_var VIRGULA IDENT
 
 lista_idents: lista_idents VIRGULA IDENT
             | IDENT
+;
+
+/* REGRA 11 */
+parte_declara_subrotinas:
+         | parte_declara_subrotinas declara_proc
+         // | parte_declara_subrotinas declara_func
+;
+
+/* REGRA 12 */
+declara_proc: PROCEDURE IDENT
+            {
+               char *rotulo;
+
+               nivel_lexico++;
+
+               // Adiciona procedimento à tabela de simbolos
+               if (buscaSimbolo(&TS, token) == -1) {
+                  empilha(rotulos, prox_rotulo());
+                  rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+                  insere(&TS, token, procedimento,
+                     criaAtrProcedimento(rotulo), nivel_lexico);
+               }
+
+            }
+            param_formais
+            PONTO_E_VIRGULA declara_proc_extra
+;
+
+/* REGRA 12 - extra */
+declara_proc_extra: FORWARD PONTO_E_VIRGULA { nivel_lexico--; }
+            | {
+               char *rotulo;
+
+               // Gera ENPR k com rotulo
+               rotulo = buscaItem(rotulos, rotulos->tamanho - 1);
+               sprintf(comando, "ENPR %d", nivel_lexico);
+               geraCodigo(rotulo, comando);
+
+            } bloco PONTO_E_VIRGULA
+            {
+               char *rotulo;
+
+               SIMBOLO *simb = retornaUltimo(&TS, procedimento);
+               PROCEDIMENTO *proc = simb->atributos;
+
+               // Gera RTPR
+               sprintf(comando, "RTPR %d, %d", nivel_lexico, proc->num_params);
+               geraCodigo(NULL, comando);
+
+               elimina(&TS, proc->num_params);
+
+               nivel_lexico--;
+
+               rotulo = desempilha(rotulos);
+               // free(rotulo);
+            }
+;
+
+/* REGRA 14 */
+param_formais:
+             | { desloc = 0; } ABRE_PARENTESES secao_param_formais FECHA_PARENTESES
+             {
+               // atualiza deslocamento e adiciona parametros ao procedimento na tabela de simbolos
+               atualizaDesloc(&TS, desloc);
+             }
+;
+
+/* REGRA 15 */
+secao_param_formais:
+                   | PONTO_E_VIRGULA secao_param_formais
+                   | {num_vars = 0;} VAR lista_id_param DOIS_PONTOS tipo
+                   {
+                     switch (simbolo) {
+                        case simb_integer:
+                           atualizaTipoVar(&TS, inteiro, num_vars);
+                           break;
+                        case simb_boolean:
+                           atualizaTipoVar(&TS, booleano, num_vars);
+                           break;
+                        default:
+                           break;
+                     }
+
+                     atualizaTipoParametro(&TS, referencia, num_vars);
+                   }
+                   secao_param_formais
+                   | {num_vars = 0;} lista_id_param DOIS_PONTOS tipo
+                   {
+                     switch (simbolo) {
+                        case simb_integer:
+                           atualizaTipoVar(&TS, inteiro, num_vars);
+                           break;
+                        case simb_boolean:
+                           atualizaTipoVar(&TS, booleano, num_vars);
+                           break;
+                        default:
+                           break;
+                     }
+                   }
+                   secao_param_formais
+;
+
+/* REGRA 15 - extra */
+lista_id_param: lista_id_param VIRGULA IDENT
+              {
+                  // Adiciona à tabela de simbolos como indefinido
+                  insere(&TS, token, param_formal,
+                     criaParamFormal(tipo_indefinido, 0, valor), nivel_lexico);
+
+                  num_vars++;
+                  desloc++;
+              }
+            | IDENT {
+                  // Adiciona à tabela de simbolos como indefinido
+                  insere(&TS, token, param_formal,
+                     criaParamFormal(tipo_indefinido, 0, valor), nivel_lexico);
+
+                  num_vars++;
+                  desloc++;
+               }
 ;
 
 
@@ -237,11 +365,56 @@ comando_atribuicao: ATRIBUICAO
                   }
 ;
 
+/* REGRA 20 */
+chama_proc:
+          {
+            if (l_elem->categoria != procedimento) {
+               sprintf(erro, "Simbolo %s não procedimento", l_elem->id);
+               imprimeErro(erro);
+            }
+
+            PROCEDIMENTO *atrProc = l_elem->atributos;
+
+            sprintf(comando, "CHPR %s, %d", atrProc->rotulo, nivel_lexico);
+            geraCodigo(NULL, comando);
+
+            l_elem = NULL;
+          }
+          | ABRE_PARENTESES { proc = l_elem; num_params = 1; } lista_expressoes FECHA_PARENTESES
+          {
+            if (l_elem->categoria != procedimento) {
+               sprintf(erro, "Simbolo %s não procedimento", l_elem->id);
+               imprimeErro(erro);
+            }
+
+            PROCEDIMENTO *atrProc = l_elem->atributos;
+
+            TIPOS *tipo;
+            PARAM_FORMAL *atrParam;
+            for (int i = 0; i < atrProc->num_params; i++) {
+               tipo = desempilha(E);
+               atrParam = atrProc->parametros[i]->atributos;
+
+               if ((*tipo) != atrParam->tipo) {
+                  sprintf(erro, "Tipo incompatível - Esperava %s e recebeu %s", imprimeTipo(atrParam->tipo), imprimeTipo((*tipo)));
+                  imprimeErro(erro);
+               }
+            }
+
+            sprintf(comando, "CHPR %s, %d", atrProc->rotulo, nivel_lexico);
+            geraCodigo(NULL, comando);
+
+            l_elem = NULL;
+            proc = NULL;
+          }
+;
+
+
 /* REGRA 24 */
-// lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
-//                   | expressao
-//                   |
-// ;
+lista_expressoes: lista_expressoes VIRGULA { num_params++; } expressao
+                  | expressao
+                  |
+;
 
 /* REGRA 25 */
 expressao: expressao_simples | expressao_simples relacao expressao_simples
@@ -342,12 +515,20 @@ expressao_simples: expressao_simples operacao termo
                      // fprintf(stderr, "free");
                      // free(t1);
                   }
-               | sinal termo {
-                  // E = T
+               | sinal { if (proc) checaParam(); } termo
+               {
+                  // E = -T
                   TIPOS *t1;
                   t1 = desempilha(T);
 
                   empilha(E, t1);
+
+                  operacoes_t *op = desempilha(operacoes);
+                  if ((*op) == op_subt) {
+                     sprintf(comando, "INVR");
+                     geraCodigo(NULL, comando);
+                  }
+
                   // free(t1);
                }
 ;
@@ -490,9 +671,6 @@ fator: IDENT
 ;
 
 
-/* REGRA 20 */
-chama_proc:;
-
 /* REGRA 21 */
 // desvio:;
 
@@ -500,12 +678,12 @@ chama_proc:;
 comando_condicional:
                      {
                         empilha(rotulos, prox_rotulo());
-                        // empilha(rotulos, prox_rotulo());
+                        empilha(rotulos, prox_rotulo());
                      }
                      if_then cond_else
                      {
                         free(desempilha(rotulos));
-                        // free(desempilha(rotulos));
+                        free(desempilha(rotulos));
                      }
 ;
 
@@ -603,9 +781,6 @@ variavel:  {
 
 /* REGRA 31 */
 // chama_func: IDENT | lista_expressoes;
-
-///* REGRA 11 */
-// parte_declara_subrotinas: parte_declara_subrotinas;
 
 /* REGRA LEITURA */
 comando_read: READ ABRE_PARENTESES parametros_leitura FECHA_PARENTESES

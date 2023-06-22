@@ -67,7 +67,8 @@ typedef enum simbolos {
   simb_subt,
   simb_mult,
   simb_read,
-  simb_write
+  simb_write,
+  simb_forward
 } simbolos;
 
 typedef enum operacoes_t {
@@ -103,6 +104,7 @@ extern PILHA *operacoes;
 extern PILHA *rotulos;
 extern PILHA *pilha_num_vars;
 extern SIMBOLO *simb_proc;
+extern SIMBOLO *proc;
 extern char comando_buffer[50];
 
 /* -------------------------------------------------------------------
@@ -123,3 +125,4 @@ void carregaEndereco(SIMBOLO *simb);
 void carregaIndireto(SIMBOLO *simb);
 
 void imprimeOp(void *operacao);
+void checaParam();

@@ -251,3 +251,28 @@ void imprimeOp(void *operacao) {
 	operacoes_t *op = operacao;
     printf("-----> %d\n", *op);
 }
+
+void checaParam() {
+    if ( !proc ) return;
+
+    SIMBOLO *simb;
+    PROCEDIMENTO *atrProc;
+    FUNCAO *atrFuncao;
+    PARAM_FORMAL *atrParam;
+
+    if ( proc->categoria == procedimento ) {
+        atrProc = proc->atributos;
+        simb = atrProc->parametros[num_params-1];
+        atrParam = simb->atributos;
+    } else if ( proc->categoria == funcao ) {
+        atrFuncao = proc->atributos;
+        simb = atrFuncao->parametros[num_params-1];
+        atrParam = simb->atributos;
+    } else {
+        imprimeErro("ERROU");
+    }
+
+    if (atrParam->parametro == referencia) {
+        imprimeErro("Esperava parâmetro por referência");
+    }
+}
