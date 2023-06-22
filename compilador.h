@@ -67,8 +67,7 @@ typedef enum simbolos {
   simb_subt,
   simb_mult,
   simb_read,
-  simb_write,
-  simb_forward
+  simb_write
 } simbolos;
 
 typedef enum operacoes_t {

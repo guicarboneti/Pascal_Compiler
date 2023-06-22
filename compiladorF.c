@@ -121,11 +121,11 @@ void carregaValor(SIMBOLO *simb) {
 
     if (simb->categoria == var_simples) {
 		vs_aux = simb->atributos;
-		sprintf(comando_buffer, "CRVL %d,%d", simb->nivel_lex, vs_aux->deslocamento);
+		sprintf(comando_buffer, "CRVL %d, %d", simb->nivel_lex, vs_aux->deslocamento);
     }
 	else if (simb->categoria == param_formal) {
 		pf_aux = simb->atributos;
-		sprintf(comando_buffer, "CRVL %d,%d", simb->nivel_lex, pf_aux->deslocamento);
+		sprintf(comando_buffer, "CRVL %d, %d", simb->nivel_lex, pf_aux->deslocamento);
 	}
 	else
 		imprimeErro("Símbolo inválido para carregamento");
@@ -139,11 +139,11 @@ void carregaEndereco(SIMBOLO *simb) {
 
     if (simb->categoria == var_simples) {
 		vs_aux = simb->atributos;
-		sprintf(comando_buffer, "CREN %d,%d", simb->nivel_lex, vs_aux->deslocamento);
+		sprintf(comando_buffer, "CREN %d, %d", simb->nivel_lex, vs_aux->deslocamento);
 	}
 	else if (simb->categoria == param_formal) {
 		pf_aux = simb->atributos;
-		sprintf(comando_buffer, "CREN %d,%d", simb->nivel_lex, pf_aux->deslocamento);
+		sprintf(comando_buffer, "CREN %d, %d", simb->nivel_lex, pf_aux->deslocamento);
 	}
 	else
 		imprimeErro("Símbolo inválido para carregamento");
@@ -153,7 +153,7 @@ void carregaEndereco(SIMBOLO *simb) {
 
 void carregaIndireto(SIMBOLO *simb) {
     PARAM_FORMAL *pf_aux = simb->atributos;
-    sprintf(comando_buffer, "CRVI %d,%d", simb->nivel_lex, pf_aux->deslocamento);
+    sprintf(comando_buffer, "CRVI %d, %d", simb->nivel_lex, pf_aux->deslocamento);
 
     geraCodigo(NULL, comando_buffer);
 }
@@ -189,7 +189,7 @@ void comandoCarrega(SIMBOLO *simb) {
 		else if (simb->categoria == funcao) {
 			func_aux = simb->atributos;
 			geraCodigo(NULL, "AMEM 1");
-			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
+			sprintf(comando_buffer, "CHPR %s, %d", func_aux->rotulo, nivel_lexico);
 			geraCodigo(NULL, comando_buffer);
 		}
 		else
@@ -220,7 +220,7 @@ void comandoCarrega(SIMBOLO *simb) {
 		}
 		else if (simb->categoria == funcao) {
 			geraCodigo(NULL, "AMEM 1");
-			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
+			sprintf(comando_buffer, "CHPR %s, %d", func_aux->rotulo, nivel_lexico);
 			geraCodigo(NULL, comando_buffer);
 		}
 		else
@@ -239,7 +239,7 @@ void comandoCarrega(SIMBOLO *simb) {
 		else if (simb->categoria == funcao) {
 			func_aux = simb->atributos;
 			geraCodigo(NULL, "AMEM 1");
-			sprintf(comando_buffer, "CHPR %s,%d", func_aux->rotulo, nivel_lexico);
+			sprintf(comando_buffer, "CHPR %s, %d", func_aux->rotulo, nivel_lexico);
 			geraCodigo(NULL, comando_buffer);
 		}
 		else

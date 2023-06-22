@@ -303,12 +303,6 @@ write { simbolo = simb_write;
           return WRITE;
 }
 
-forward { simbolo = simb_forward;
-          strncpy (token, yytext, TAM_TOKEN);
-          IMPRIME(" forward ");
-          return FORWARD;
-        }
-
 {ident} { simbolo = simb_identificador;
           strncpy (token, yytext, TAM_TOKEN);
           IMPRIME(" ident  ");

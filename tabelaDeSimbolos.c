@@ -103,16 +103,16 @@ void printProcedimento(PROCEDIMENTO *atrib) {
 }
 
 void printParamFormal(PARAM_FORMAL *atributos) {
-    return;
+    printf("%10d %12s %15s\n", atributos->deslocamento, imprimeTipo(atributos->tipo), imprimeTipoParametro(atributos->parametro));
 }
 
 void printFuncao(FUNCAO *atributos) {
-    return;
+    printf("%10d %12s %24s %14d\n", atributos->deslocamento, imprimeTipo(atributos->tipo), atributos->rotulo, atributos->num_params);
 }
 
 void imprimeSimbolo(void* item) {
     SIMBOLO *simb = item;
-    printf("%3s %20s %8d", simb->id, imprimeCategoria(simb->categoria), simb->nivel_lex);
+    printf("%3s %18s %6d", simb->id, imprimeCategoria(simb->categoria), simb->nivel_lex);
 
     switch (simb->categoria) {
         case var_simples:
@@ -146,8 +146,8 @@ char *imprimeTipoParametro(PARAMETRO passagem) {
 }
 
 void imprimeTS(PILHA *TS, int tam) {
-    printf("\n                  TABELA DE SIMBOLOS\n----------------------------------------------------------\n");
-    printf(" id  |     categoria      | nivel_lex | Desloc |   Tipo\n----------------------------------------------------------\n");
+    printf("\n                                          TABELA DE SIMBOLOS\n----------------------------------------------------------------------------------------------------\n");
+    printf(" id  |   categoria    | nivel_lex | Desloc |   Tipo   |  Parametro  |    Rotulo    |  Num Parametros\n----------------------------------------------------------------------------------------------------\n");
     imprimePilha(TS, imprimeSimbolo);
 }
 
@@ -181,6 +181,21 @@ PROCEDIMENTO *criaAtrProcedimento(char *rotulo) {
 
     return atributos;
 }
+
+FUNCAO *criaAtrFuncao(char *rotulo) {
+    FUNCAO *atributos = malloc(sizeof(FUNCAO));
+
+    atributos->rotulo = malloc(strlen(rotulo) * sizeof(char));
+    strncpy(atributos->rotulo, rotulo, strlen(rotulo));
+    atributos->rotulo[strlen(rotulo)] = '\0';
+    atributos->tipo = tipo_indefinido;
+    atributos->deslocamento = 0;
+    atributos->num_params = 0;
+    atributos->parametros = NULL;
+
+    return atributos;
+}
+
 
 void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars) {
     int i;
@@ -225,6 +240,26 @@ void atualizaTipoParametro(PILHA *TS, PARAMETRO passagem, int n) {
     }
 }
 
+void atualizaTipoFuncao(SIMBOLO *simb, TIPOS tipo) {
+    if (simb->categoria != funcao) {
+        fprintf(stderr, "ERRO - atualizaTipoFuncao() - simbolo não é função\n");
+        exit(-1);
+    }
+    FUNCAO *aux_func = simb->atributos;
+    aux_func->tipo = tipo;
+}
+
+SIMBOLO *retUltDaCategoria(PILHA *TS, CATEGORIAS categoria) {
+    SIMBOLO *item;
+    int i;
+
+    for (i=TS->tamanho-1; i>-1; i--) {
+        item = buscaItem(TS, i);
+        if (item->categoria == categoria)
+            return item;
+    }
+    return NULL;
+}
 
 void deletaPorNivelLexico(PILHA *TS, int nivel_lexico) {
     if (pilhaVazia(TS)) return;
