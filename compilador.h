@@ -55,7 +55,6 @@ typedef enum simbolos {
   simb_of,
   simb_procedure,
   simb_function,
-  simb_goto,
   simb_if,
   simb_then,
   simb_else,
@@ -129,3 +128,4 @@ void carregaIndireto(SIMBOLO *simb);
 
 void imprimeOp(void *operacao);
 void checaParam();
+STRUCT_LABEL *criaLabel(char *nome, int nivel_lex);

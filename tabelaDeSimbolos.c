@@ -271,6 +271,18 @@ SIMBOLO *retUltDaCategoria(PILHA *TS, CATEGORIAS categoria) {
     return NULL;
 }
 
+SIMBOLO *retUltDoNivelLex(PILHA *TS, int nivel_lex) {
+    SIMBOLO *item;
+    int i;
+
+    for (i=TS->tamanho-1; i>-1; i--) {
+        item = buscaItem(TS, i);
+        if (item->nivel_lex == nivel_lex)
+            return item;
+    }
+    return NULL;
+}
+
 void deletaPorNivelLexico(PILHA *TS, int nivel_lexico) {
     if (pilhaVazia(TS)) return;
     SIMBOLO *item;

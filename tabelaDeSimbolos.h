@@ -49,10 +49,10 @@ typedef struct FUNCAO {
     SIMBOLO **parametros;
 } FUNCAO;
 
-typedef struct LABEL {
+typedef struct STRUCT_LABEL {
     char *nome;
     int nivel_lex;
-} LABEL;
+} STRUCT_LABEL;
 
 void inicializaTS(PILHA *TS, int tam);
 
@@ -75,8 +75,6 @@ PROCEDIMENTO *criaAtrProcedimento(char *rotulo);
 
 FUNCAO *criaAtrFuncao(char *rotulo);
 
-LABEL *criaAtrLabel(char *nome);
-
 void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars);
 
 void atualizaTipoParametro(PILHA *TS, PARAMETRO passagem, int n);
@@ -84,6 +82,8 @@ void atualizaTipoParametro(PILHA *TS, PARAMETRO passagem, int n);
 void atualizaTipoFuncao(SIMBOLO *simb, TIPOS tipo);
 
 SIMBOLO *retUltDaCategoria(PILHA *TS, CATEGORIAS categoria);
+
+SIMBOLO *retUltDoNivelLex(PILHA *TS, int nivel_lex);
 
 void printVarSimples(VAR_SIMPLES *atributos);
 

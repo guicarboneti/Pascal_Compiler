@@ -278,3 +278,14 @@ void checaParam() {
         imprimeErro("Esperava parâmetro por referência");
     }
 }
+
+STRUCT_LABEL *criaLabel(char *nome, int nivel_lex) {
+    STRUCT_LABEL *label = malloc(sizeof(STRUCT_LABEL));
+
+    label->nome = malloc(strlen(nome) * sizeof(char));
+    strncpy(label->nome, nome, strlen(nome));
+    label->nome[strlen(nome)] = '\0';
+    label->nivel_lex = nivel_lex;
+
+    return label;
+}

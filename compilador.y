@@ -103,15 +103,20 @@ bloco:  { num_bloco_vars = 0; }
 parte_declara_labels: LABEL declara_label PONTO_E_VIRGULA | ;
 
 declara_label: declara_label VIRGULA NUMERO {
-         cat = createLabel();
-         cat->label->label = nextLabel();
-         insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+         // cat = createLabel();
+         // cat->label->label = nextLabel();
+         // insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+         STRUCT_LABEL *label_aux;
+         label_aux = criaLabel(token, nivel_lexico);
+         empilha(labels, label_aux);
       } | NUMERO {
-         Cat cat = createLabel();
-         cat->label->label = nextLabel();
-         insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+         // Cat cat = createLabel();
+         // cat->label->label = nextLabel();
+         // insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+         STRUCT_LABEL *label_aux;
+         label_aux = criaLabel(token, nivel_lexico);
+         empilha(labels, label_aux);
       }
-      // empilhando
 ;
 
 /* REGRA 8 */
@@ -343,8 +348,34 @@ comandos:
 
 /* REGRA 17 */
 comando: NUMERO {
-            sprintf(comando, "ENRT %d, %d", l_elem->nivel_lex, pilha_num_vars);
+            // sprintf(comando, "ENRT %d, %d", l_elem->nivel_lex, pilha_num_vars);
+            // geraCodigo(NULL, comando);
+
+            int i;
+            STRUCT_LABEL *label;
+            SIMBOLO *simb;
+
+            if ((i = buscaSimbolo(labels, token)) < 0)
+               imprimeErro("Label não encontrado na pilha");
+            label = buscaItem(labels, i);
+            
+            num_bloco_vars = 0;
+            simb = retUltDoNivelLex(&TS, label->nivel_lex);
+            if(simb->nivel_lex == 0) {
+               // We jumped into main.
+               num_bloco_vars = num_vars;
+            } else {
+               // if(simb->categoria == FUNCAO) {
+               //       FUNCAO *aux_func = simb->atributos;
+               //       num_bloco_vars = aux_func->num_params;
+               // } else if(simb->categoria == CAT_PROCEDURE) {
+               //       num_bloco_vars = subroutine->value->procedure->n_local_vars;
+               // }
+            }
+
+            sprintf(comando, "ENRT %d,%d", nivel_lexico, num_bloco_vars);
             geraCodigo(NULL, comando);
+
          }
          DOIS_PONTOS comando_sem_rotulo
             | comando_sem_rotulo
@@ -721,14 +752,16 @@ fator: IDENT
 
 /* REGRA 21 */
 desvio: GOTO NUMERO {
-         LABEL *label;
+         STRUCT_LABEL *label;
+         int i;
 
-         if ((label = buscaItem(&labels, token)) < 0)
+         if ((i = buscaSimbolo(labels, token)) < 0)
             imprimeErro("Label não encontrado na pilha");
+         label = buscaItem(labels, i);
 
          sprintf(comando, "DSVR %s, %d, %d", label->nome, label->nivel_lex, nivel_lexico);
-         if(elem->nivel_lex != nivel_lexico)  // Limpar a TS. Nivel lexico mudou
-            deletaPorNivelLexico(&TS, elem->nivel_lex);
+         if(label->nivel_lex != nivel_lexico)  // Limpar a TS. Nivel lexico mudou
+            deletaPorNivelLexico(&TS, label->nivel_lex);
 
          geraCodigo(NULL, comando);
       }
