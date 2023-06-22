@@ -24,6 +24,7 @@ PILHA *l_elem_pilha;
 PILHA *E, *T, *F;
 PILHA *operacoes;
 PILHA *rotulos;
+PILHA *labels;
 PILHA *pilha_num_vars;
 int num_params;
 char erro[200];
@@ -36,12 +37,12 @@ SIMBOLO *proc = NULL;
 %token PROGRAM ABRE_PARENTESES FECHA_PARENTESES
 %token VIRGULA PONTO_E_VIRGULA DOIS_PONTOS PONTO
 %token T_BEGIN T_END VAR IDENT NUMERO ATRIBUICAO 
-%token LABEL INTEGER BOOLEAN ABRE_CHAVES FECHA_CHAVES
+%token INTEGER BOOLEAN ABRE_CHAVES FECHA_CHAVES
 %token ABRE_COLCHETES FECHA_COLCHETES ARRAY OF
-%token PROCEDURE FUNCTION GOTO IF THEN ELSE
+%token PROCEDURE FUNCTION IF THEN ELSE
 %token WHILE DO OR AND DIV SOMA SUBTRACAO
 %token MULTIPLICACAO IGUAL DIFERENTE MENOR
-%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE
+%token MAIOR MENOR_IGUAL MAIOR_IGUAL NOT READ WRITE GOTO LABEL
 
 /* Para assegurar o funcionamento do IF THEN ELSE
    Precedências são crescentes, logo "lower_than_else" < "else" */
@@ -66,6 +67,7 @@ programa    :{
 
 /* REGRA 2 */
 bloco:  { num_bloco_vars = 0; }
+         parte_declara_labels
          parte_declara_vars {
             empilha(pilha_num_vars, &num_bloco_vars);
 
@@ -98,7 +100,19 @@ bloco:  { num_bloco_vars = 0; }
          }
 ;
 
+parte_declara_labels: LABEL declara_label PONTO_E_VIRGULA | ;
 
+declara_label: declara_label VIRGULA NUMERO {
+         cat = createLabel();
+         cat->label->label = nextLabel();
+         insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+      } | NUMERO {
+         Cat cat = createLabel();
+         cat->label->label = nextLabel();
+         insertST(symbolTable, token, lexLevel, CAT_LABEL, cat);
+      }
+      // empilhando
+;
 
 /* REGRA 8 */
 parte_declara_vars:   
@@ -174,11 +188,11 @@ declara_proc: PROCEDURE IDENT
 
             }
             parametros_formais
-            PONTO_E_VIRGULA declara_proc_extra
+            PONTO_E_VIRGULA parametros_proc
 ;
 
 /* REGRA 12 - extra */
-declara_proc_extra: PONTO_E_VIRGULA { nivel_lexico--; }
+parametros_proc: { nivel_lexico--; }
             | {
                char *rotulo;
 
@@ -230,7 +244,7 @@ declara_func: FUNCTION IDENT
 ;
 
 /* REGRA 13 - extra */
-parametros_funcao: PONTO_E_VIRGULA { nivel_lexico--; }
+parametros_funcao: { nivel_lexico--; }
             | {
                char *rotulo;
 
@@ -328,8 +342,12 @@ comandos:
 ;
 
 /* REGRA 17 */
-comando: NUMERO DOIS_PONTOS comando_sem_rotulo
-         | comando_sem_rotulo
+comando: NUMERO {
+            sprintf(comando, "ENRT %d, %d", l_elem->nivel_lex, pilha_num_vars);
+            geraCodigo(NULL, comando);
+         }
+         DOIS_PONTOS comando_sem_rotulo
+            | comando_sem_rotulo
 ;
 
 /* REGRA 18 */
@@ -355,6 +373,7 @@ comando_sem_rotulo: IDENT
                   | comando_write
                   | comando_repetitivo
                   | comando_condicional
+                  | desvio
 ;
 
 /* REGRA 18 - extra */
@@ -701,7 +720,19 @@ fator: IDENT
 
 
 /* REGRA 21 */
-// desvio:;
+desvio: GOTO NUMERO {
+         LABEL *label;
+
+         if ((label = buscaItem(&labels, token)) < 0)
+            imprimeErro("Label não encontrado na pilha");
+
+         sprintf(comando, "DSVR %s, %d, %d", label->nome, label->nivel_lex, nivel_lexico);
+         if(elem->nivel_lex != nivel_lexico)  // Limpar a TS. Nivel lexico mudou
+            deletaPorNivelLexico(&TS, elem->nivel_lex);
+
+         geraCodigo(NULL, comando);
+      }
+;
 
 /* REGRA 22 */
 comando_condicional:

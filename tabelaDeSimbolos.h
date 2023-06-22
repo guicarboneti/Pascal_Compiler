@@ -49,6 +49,11 @@ typedef struct FUNCAO {
     SIMBOLO **parametros;
 } FUNCAO;
 
+typedef struct LABEL {
+    char *nome;
+    int nivel_lex;
+} LABEL;
+
 void inicializaTS(PILHA *TS, int tam);
 
 // insere simbolo no topo da pilha
@@ -69,6 +74,8 @@ PARAM_FORMAL *criaParamFormal(TIPOS tipo, int deslocamento, CATEGORIAS passagem)
 PROCEDIMENTO *criaAtrProcedimento(char *rotulo);
 
 FUNCAO *criaAtrFuncao(char *rotulo);
+
+LABEL *criaAtrLabel(char *nome);
 
 void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars);
 

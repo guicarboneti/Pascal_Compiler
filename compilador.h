@@ -19,8 +19,10 @@
 #define TAM_OPERACOES_PILHA 50
 #define TAM_L_ELEM_PILHA 50
 #define TAM_ROTULOS_PILHA 50
+#define TAM_LABELS_PILHA 50
 #define TAM_PILHA_NUM_VARS 50
 #define ROT_SIZE 3
+#define LBL_SIZE 10
 
 typedef enum simbolos {
   simb_program,
@@ -67,7 +69,8 @@ typedef enum simbolos {
   simb_subt,
   simb_mult,
   simb_read,
-  simb_write
+  simb_write,
+  simb_goto
 } simbolos;
 
 typedef enum operacoes_t {
@@ -101,6 +104,7 @@ extern PILHA *l_elem_pilha;
 extern PILHA *E, *T, *F;
 extern PILHA *operacoes;
 extern PILHA *rotulos;
+extern PILHA *labels;
 extern PILHA *pilha_num_vars;
 extern SIMBOLO *simb_proc;
 extern SIMBOLO *proc;

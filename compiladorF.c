@@ -24,6 +24,7 @@
 simbolos simbolo, relacao;
 char token[TAM_TOKEN];
 int rotulos_cont = 0;
+int labels_cont = 0;
 SIMBOLO *simb_proc;
 char comando_buffer[50];
 
@@ -62,6 +63,7 @@ void inicializaPilhas()
 	F = criaPilha(TAM_ETF_PILHA, sizeof(TIPOS));
 	operacoes = criaPilha(TAM_OPERACOES_PILHA, sizeof(operacoes_t));
 	rotulos = criaPilha(TAM_ROTULOS_PILHA, (ROT_SIZE + 1) * sizeof(char));
+	labels = criaPilha(TAM_LABELS_PILHA, (LBL_SIZE + 1) * sizeof(char));
 	pilha_num_vars = criaPilha(TAM_PILHA_NUM_VARS, sizeof(int));
 }
 

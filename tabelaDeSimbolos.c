@@ -196,6 +196,16 @@ FUNCAO *criaAtrFuncao(char *rotulo) {
     return atributos;
 }
 
+// LABEL *criaAtrLabel(char *nome) {
+//     LABEL *label = malloc(sizeof(LABEL));
+
+//     label->rotulo = malloc(strlen(nome) * sizeof(char));
+//     strncpy(label->rotulo, nome, strlen(nome));
+//     label->rotulo[strlen(nome)] = '\0';
+
+//     return label;
+// }
+
 
 void atualizaTipoVar(PILHA *TS, TIPOS tipo, int num_vars) {
     int i;
